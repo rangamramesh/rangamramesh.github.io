@@ -1,181 +1,43 @@
-import os
-from weasyprint import HTML
-
-# Content for the Privacy Policy and Terms of Use
-# Using a clean, professional "Stoic" theme (dark/muted tones)
-
-html_content = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Silent Wisdom - Legal Documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - Silent Wisdom</title>
     <style>
-        @page {
-            size: A4;
-            margin: 20mm;
-            background-color: #1a1a1b;
-        }
-        body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            color: #e0e0e0;
-            background-color: #1a1a1b;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            max-width: 800px;
-            margin: auto;
-        }
-        .header-box {
-            border-left: 5px solid #6b7280;
-            padding-left: 20px;
-            margin-bottom: 40px;
-        }
-        h1 {
-            color: #ffffff;
-            font-size: 24pt;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        h2 {
-            color: #9ca3af;
-            font-size: 16pt;
-            border-bottom: 1px solid #333;
-            padding-bottom: 8px;
-            margin-top: 30px;
-        }
-        p, li {
-            font-size: 11pt;
-            color: #d1d5db;
-        }
-        .code-block {
-            background-color: #2d2d2d;
-            border: 1px solid #444;
-            padding: 15px;
-            font-family: 'Courier New', monospace;
-            font-size: 9pt;
-            color: #a7f3d0;
-            white-space: pre-wrap;
-            margin: 20px 0;
-            border-radius: 4px;
-        }
-        .label {
-            display: inline-block;
-            background: #374151;
-            color: #f3f4f6;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 9pt;
-            margin-bottom: 10px;
-        }
-        .page-break {
-            page-break-after: always;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 40px auto; padding: 20px; background-color: #f9f9f9; }
+        .card { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #1a1a1a; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        h2 { color: #444; margin-top: 30px; }
+        p, li { color: #555; }
+        footer { margin-top: 40px; font-size: 0.8em; color: #888; text-align: center; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header-box">
-            <div class="label">LEGAL DOCUMENT 01</div>
-            <h1>Privacy Policy</h1>
-            <p><strong>Entity:</strong> Silent Wisdom (Content Management System)<br>
-            <strong>Effective Date:</strong> April 22, 2026</p>
-        </div>
+    <div class="card">
+        <h1>Privacy Policy</h1>
+        <p><strong>Last Updated: April 2026</strong></p>
+        <p>Silent Wisdom ("we", "us", or "our") operates the automation tools for the Silent Wisdom content platform. This policy informs you of our policies regarding the collection, use, and disclosure of personal data when you use our Service and the choices you have associated with that data.</p>
 
-        <p>This Privacy Policy describes how Silent Wisdom ("we", "us", or "our") collects, uses, and shares information in connection with our TikTok API integration and YouTube channel.</p>
-
-        <h2>1. Information Collection</h2>
-        <p>Our application interfaces with the TikTok API. We collect only the minimum data required to facilitate video uploads:</p>
+        <h2>1. Information Collection and Use</h2>
+        <p>For the purpose of uploading content to TikTok, we use TikTok's API Services. We collect the following types of information:</p>
         <ul>
-            <li><strong>Authentication Data:</strong> OAuth tokens provided by TikTok to authorize video posting.</li>
-            <li><strong>Content Data:</strong> Video files, captions, and hashtags you intend to publish.</li>
+            <li><strong>Authentication Data:</strong> We access TikTok user tokens via OAuth to allow our application to post videos on your behalf.</li>
+            <li><strong>Media Assets:</strong> Video files and metadata (titles, hashtags) provided for the purpose of publishing.</li>
         </ul>
 
-        <h2>2. Data Usage</h2>
-        <p>We use the TikTok API solely to:
-            <ul>
-                <li>Initialize video uploads to your designated Creator account.</li>
-                <li>Submit metadata (titles, AI-generated disclosure labels).</li>
-            </ul>
-        </p>
+        <h2>2. Use of Data</h2>
+        <p>We use the collected data to provide and maintain our Service, specifically to facilitate the "Direct Post" feature to TikTok. We do not use this data for any other purpose.</p>
 
-        <h2>3. Data Sharing & Third Parties</h2>
-        <p>We do not sell, rent, or lease any user data to third parties. Data is only shared with TikTok (via their official API) to perform the actions you explicitly trigger.</p>
+        <h2>3. Data Transfer and Disclosure</h2>
+        <p>Your information, including Personal Data, is only transferred to TikTok's servers through their official API. We do not sell or share your data with any other third-party entities.</p>
 
         <h2>4. Data Retention</h2>
-        <p>Access tokens are stored in an encrypted format and are deleted upon user request or application disconnection.</p>
+        <p>We retain your authentication tokens only for as long as necessary to provide the service. You may revoke access at any time via your TikTok account security settings.</p>
 
-        <div class="page-break"></div>
-
-        <div class="header-box">
-            <div class="label">LEGAL DOCUMENT 02</div>
-            <h1>Terms of Use</h1>
-            <p><strong>Entity:</strong> Silent Wisdom<br>
-            <strong>Effective Date:</strong> April 22, 2026</p>
-        </div>
-
-        <h2>1. Agreement to Terms</h2>
-        <p>By using the Silent Wisdom automation tools or consuming our content, you agree to be bound by these Terms and the YouTube/TikTok Community Guidelines.</p>
-
-        <h2>2. Use of Service</h2>
-        <p>You agree not to use the Silent Wisdom API tools for any illegal purposes, including the distribution of spam, hate speech, or content that violates intellectual property rights.</p>
-
-        <h2>3. Philosophical Content Disclaimer</h2>
-        <p>The content provided (Stoic lessons, psychology) is for educational purposes. Silent Wisdom is not responsible for personal decisions made based on the interpretation of ancient philosophical texts.</p>
-
-        <h2>4. Intellectual Property</h2>
-        <p>The name "Silent Wisdom" and all original visual content are protected by copyright. Unauthorized re-uploading of these assets without the "Silent Wisdom" watermark or attribution is prohibited.</p>
-
-        <h2>5. Limitation of Liability</h2>
-        <p>In no event shall Silent Wisdom be liable for any damages (including, without limitation, damages for loss of data or profit) arising out of the use or inability to use our API tools.</p>
-
-        <div class="page-break"></div>
-
-        <div class="header-box">
-            <div class="label">DEVELOPER EXPORT</div>
-            <h1>HTML Source Code</h1>
-            <p>Copy this code into two separate files (privacy.html and terms.html) and host them on your domain for TikTok approval.</p>
-        </div>
-
-        <h2>Privacy Policy HTML</h2>
-        <div class="code-block">
-&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;&lt;title&gt;Privacy Policy - Silent Wisdom&lt;/title&gt;&lt;/head&gt;
-&lt;body style="font-family:sans-serif; padding:40px; color:#333;"&gt;
-    &lt;h1&gt;Privacy Policy&lt;/h1&gt;
-    &lt;p&gt;Last updated: April 2026&lt;/p&gt;
-    &lt;h2&gt;1. Data Collection&lt;/h2&gt;
-    &lt;p&gt;We use TikTok API scopes to upload video content. We do not store personal data beyond necessary OAuth tokens.&lt;/p&gt;
-    &lt;h2&gt;2. Third Parties&lt;/h2&gt;
-    &lt;p&gt;Data is only shared with TikTok to facilitate the "Direct Post" feature.&lt;/p&gt;
-&lt;/body&gt;
-&lt;/html&gt;
-        </div>
-
-        <h2>Terms of Use HTML</h2>
-        <div class="code-block">
-&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;&lt;title&gt;Terms of Use - Silent Wisdom&lt;/title&gt;&lt;/head&gt;
-&lt;body style="font-family:sans-serif; padding:40px; color:#333;"&gt;
-    &lt;h1&gt;Terms of Use&lt;/h1&gt;
-    &lt;p&gt;Effective: April 2026&lt;/p&gt;
-    &lt;h2&gt;1. Acceptance&lt;/h2&gt;
-    &lt;p&gt;By using our tools, you agree to TikTok's Terms of Service and our internal guidelines.&lt;/p&gt;
-    &lt;h2&gt;2. Disclaimer&lt;/h2&gt;
-    &lt;p&gt;Content is for educational purposes regarding Stoicism and philosophy.&lt;/p&gt;
-&lt;/body&gt;
-&lt;/html&gt;
-        </div>
+        <h2>5. Contact Us</h2>
+        <p>If you have any questions about this Privacy Policy, please contact us via our official YouTube channel "Silent Wisdom".</p>
     </div>
+    <footer>&copy; 2026 Silent Wisdom</footer>
 </body>
 </html>
-"""
-
-# Save to PDF
-output_path = "silent_wisdom_legal_docs.pdf"
-HTML(string=html_content).write_pdf(output_path)
