@@ -3,896 +3,1221 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ramesh Rangam — Lead Android Engineer / Architect</title>
+<meta name="description" content="Ramesh Rangam — Senior Android Engineer with 10+ years building Automotive HMI (AAOS, AIDL, VHAL), healthcare, and consumer apps. Based in Berlin, Germany.">
+<meta name="theme-color" content="#060a14">
+<meta property="og:title" content="Ramesh Rangam · Android Engineer">
+<meta property="og:description" content="10+ years building Android — Automotive HMI, Healthcare, Consumer Apps. Berlin, Germany.">
+<meta property="og:type" content="website">
+<title>Ramesh Rangam · Android Engineer · Automotive HMI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --asphalt:#0A0C0E;
-    --panel:#14181C;
-    --panel-2:#191D22;
-    --steel:#4B535B;
-    --steel-dim:#2A2F34;
-    --hud:#4FD7FF;
-    --hud-dim:rgba(79,215,255,0.18);
-    --amber:#FFB020;
-    --paper:#E9EDF0;
-    --mute:#8992A0;
-  }
-  *{box-sizing:border-box; margin:0; padding:0;}
-  html{scroll-behavior:smooth;}
-  body{
-    background:var(--asphalt);
-    color:var(--paper);
-    font-family:'Inter', sans-serif;
-    line-height:1.6;
-    overflow-x:hidden;
-  }
-  ::selection{ background:var(--hud-dim); color:var(--paper); }
+/* ============ TOKENS ============ */
+:root{
+  --bg-deep:#060a14;
+  --bg:#0a1120;
+  --bg-raise:#0e1830;
+  --glass:rgba(16,26,48,0.55);
+  --glass-strong:rgba(14,22,42,0.82);
+  --ink:#eaf2ff;
+  --ink-dim:#9db0cf;
+  --ink-faint:#5f7090;
+  --cyan:#38d9f5;
+  --green:#3ddc84;
+  --violet:#8b7cf6;
+  --line:rgba(146,178,230,0.14);
+  --line-strong:rgba(56,217,245,0.35);
+  --font-disp:'Space Grotesk',system-ui,sans-serif;
+  --font-body:'Inter',system-ui,sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+  --radius:18px;
+  --shadow:0 30px 70px rgba(2,6,16,0.55);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important}
+}
+body{
+  background:var(--bg-deep);
+  color:var(--ink);
+  font-family:var(--font-body);
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:rgba(56,217,245,0.28);color:#eaffff}
 
-  h1,h2,h3{
-    font-family:'Space Grotesk', sans-serif;
-    font-weight:600;
-    letter-spacing:-0.01em;
-  }
-  a{ color:inherit; }
+/* ============ BACKGROUND LAYERS ============ */
+.fx{position:fixed;inset:0;pointer-events:none;z-index:0}
+#scene{width:100%;height:100%;display:block;opacity:.92}
+.fade-top{background:linear-gradient(to bottom,var(--bg-deep) 0%,transparent 28%)}
+.fade-bottom{background:linear-gradient(to top,var(--bg-deep) 8%,transparent 32%)}
+.vignette{
+  background:radial-gradient(ellipse 120% 90% at 50% 30%, transparent 55%, rgba(4,7,15,0.75) 100%);
+}
+.scanlines{
+  background:repeating-linear-gradient(to bottom, rgba(160,200,255,0.03) 0 1px, transparent 1px 4px);
+  mix-blend-mode:overlay;
+}
+.noise{opacity:.5}
+.css-fallback{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:0}
+.css-fallback .car-art{width:340px;height:120px;position:relative}
+.css-fallback .car-art div{position:absolute;border:2px solid var(--cyan);box-shadow:0 0 24px rgba(56,217,245,.5),inset 0 0 24px rgba(56,217,245,.15);border-radius:18px;background:rgba(56,217,245,.08)}
+.css-fallback .car-art .b{left:0;right:0;top:48px;height:56px}
+.css-fallback .car-art .c{left:90px;right:90px;top:10px;height:48px;border-color:var(--green)}
+body.no-three #scene{display:none}
+body.no-three .css-fallback{display:flex}
 
-  .mono{ font-family:'IBM Plex Mono', monospace; }
+/* ============ NAV ============ */
+.topbar{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:20px;padding:18px 40px;
+  background:rgba(6,10,20,0.6);
+  backdrop-filter:blur(18px) saturate(1.4);
+  border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--ink)}
+.brand-mark{
+  width:34px;height:34px;border-radius:9px;position:relative;
+  border:1px solid var(--line-strong);
+  background:linear-gradient(135deg, rgba(56,217,245,0.18), rgba(61,220,132,0.12));
+  box-shadow:0 0 22px rgba(56,217,245,0.25), inset 0 0 12px rgba(56,217,245,0.15);
+}
+.brand-mark::before,.brand-mark::after{content:"";position:absolute;background:var(--cyan)}
+.brand-mark::before{left:8px;top:8px;right:8px;height:3px;border-radius:2px}
+.brand-mark::after{left:8px;bottom:8px;right:8px;height:6px;border-radius:2px;background:linear-gradient(90deg,var(--cyan),var(--green))}
+.brand-name{font-family:var(--font-disp);font-weight:700;letter-spacing:.02em;font-size:15px}
+.brand-sub{font-family:var(--font-mono);font-size:9px;color:var(--ink-faint);letter-spacing:.22em;text-transform:uppercase;margin-top:1px}
+.nav{display:flex;gap:6px;flex-wrap:wrap}
+.nav a{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink-dim);text-decoration:none;
+  padding:8px 14px;border:1px solid transparent;border-radius:8px;
+  transition:color .2s,border-color .2s,background .2s;
+}
+.nav a:hover{color:var(--cyan);border-color:var(--line)}
+.nav a.active{color:var(--cyan);background:rgba(56,217,245,0.08);border-color:var(--line-strong)}
 
-  .wrap{
-    max-width:860px;
-    margin:0 auto;
-    padding:0 28px;
-  }
+/* ============ HERO ============ */
+.hero{
+  position:relative;z-index:2;
+  min-height:100vh;
+  display:flex;align-items:center;
+  padding:140px 40px 90px;
+}
+.hero-grid{max-width:1280px;margin:0 auto;width:100%}
+.hero-line{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.24em;
+  color:var(--green);display:flex;align-items:center;gap:12px;margin-bottom:26px;text-transform:uppercase;
+}
+.hero-line .pulse{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(61,220,132,.6);animation:pulse 2.2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(61,220,132,.55)}70%{box-shadow:0 0 0 10px rgba(61,220,132,0)}100%{box-shadow:0 0 0 0 rgba(61,220,132,0)}}
+.hero-name{
+  font-family:var(--font-disp);font-weight:700;
+  font-size:clamp(58px,11vw,132px);
+  line-height:.94;letter-spacing:-.035em;text-transform:uppercase;
+  margin-bottom:14px;
+  background:linear-gradient(100deg,#eaf2ff 20%, #38d9f5 58%, #3ddc84 100%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 2px 0 rgba(56,217,245,.12)) drop-shadow(0 10px 34px rgba(56,217,245,.22));
+}
+.hero-name .ghost{
+  display:block;color:transparent;-webkit-text-fill-color:transparent;
+  background:linear-gradient(100deg,#41506f,#26344f 60%,#1b2a45);
+  -webkit-background-clip:text;background-clip:text;
+}
+.hero-role{
+  display:flex;align-items:center;gap:14px;margin-bottom:22px;flex-wrap:wrap;
+}
+.hero-role h2{
+  font-family:var(--font-disp);font-weight:600;
+  font-size:clamp(19px,3vw,30px);color:var(--ink);
+  letter-spacing:-.01em;
+}
+.hero-role .tag{
+  font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--cyan);border:1px solid var(--line-strong);border-radius:100px;
+  padding:6px 12px;background:rgba(56,217,245,.06);
+}
+.hero-copy{max-width:640px;color:var(--ink-dim);font-size:17px;line-height:1.7;margin-bottom:36px}
+.hero-copy b{color:var(--ink);font-weight:600}
+.cta-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:52px}
+.cta{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:500;
+  padding:15px 24px;border-radius:10px;text-decoration:none;
+  transition:transform .25s,box-shadow .25s,background .25s;
+}
+.cta-primary{
+  color:#04121c;background:linear-gradient(120deg,var(--cyan),#2ee6a5);
+  box-shadow:0 14px 40px rgba(56,217,245,.28);
+}
+.cta-primary:hover{transform:translateY(-3px);box-shadow:0 20px 54px rgba(56,217,245,.42)}
+.cta-ghost{color:var(--ink);border:1px solid var(--line);background:var(--glass)}
+.cta-ghost:hover{transform:translateY(-3px);border-color:var(--line-strong);color:var(--cyan)}
 
-  /* ---------- NAV ---------- */
-  nav{
-    position:fixed;
-    top:0; left:0; right:0;
-    z-index:100;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:18px 32px;
-    background:linear-gradient(to bottom, rgba(10,12,14,0.92), rgba(10,12,14,0));
-    backdrop-filter:blur(6px);
-  }
-  .nav-id{
-    font-family:'Space Grotesk';
-    font-size:15px;
-    font-weight:600;
-    display:flex; align-items:center; gap:10px;
-  }
-  .nav-dot{
-    width:7px; height:7px; border-radius:50%;
-    background:var(--hud);
-    box-shadow:0 0 8px 1px var(--hud);
-  }
-  .nav-links{
-    display:flex; gap:26px;
-    font-size:13px;
-    color:var(--mute);
-  }
-  .nav-links a{ text-decoration:none; transition:color .2s; }
-  .nav-links a:hover{ color:var(--hud); }
-  @media (max-width:640px){ .nav-links{ display:none; } }
+/* HUD stats strip */
+.stats{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:14px;
+  max-width:1280px;margin:0 auto;padding:0 40px 70px;position:relative;z-index:2;
+}
+.stat{
+  position:relative;
+  background:var(--glass);backdrop-filter:blur(14px);
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:26px 22px;overflow:hidden;
+  transition:border-color .25s,transform .25s;
+}
+.stat:hover{border-color:var(--line-strong);transform:translateY(-3px)}
+.stat::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:.4}
+.stat-label{font-family:var(--font-mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:10px}
+.stat-num{
+  font-family:var(--font-disp);font-weight:700;font-size:44px;line-height:1;letter-spacing:-.02em;
+  background:linear-gradient(120deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.stat-note{font-family:var(--font-mono);font-size:10px;color:var(--ink-dim);margin-top:8px;letter-spacing:.06em}
 
-  /* ---------- HERO ---------- */
-  #hero{
-    position:relative;
-    height:100svh;
-    min-height:640px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    overflow:hidden;
-    border-bottom:1px solid var(--steel-dim);
-  }
-  #hero-canvas{
-    position:absolute;
-    inset:0;
-    width:100%; height:100%;
-    opacity:0.85;
-  }
-  .hero-inner{
-    position:relative;
-    z-index:2;
-    text-align:center;
-    padding:0 24px;
-  }
-  .hero-kicker{
-    font-family:'IBM Plex Mono';
-    font-size:12.5px;
-    color:var(--hud);
-    letter-spacing:0.04em;
-    margin-bottom:18px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:10px;
-  }
-  .hero-kicker .line{ width:28px; height:1px; background:var(--hud); opacity:.6; }
-  .hero-title{
-    font-size:clamp(38px, 7vw, 66px);
-    line-height:1.05;
-    margin-bottom:20px;
-  }
-  .hero-title .accent{ color:var(--hud); }
-  .hero-sub{
-    font-size:clamp(15px, 2vw, 18px);
-    color:var(--mute);
-    max-width:560px;
-    margin:0 auto 34px;
-  }
-  .hero-meta{
-    display:flex;
-    justify-content:center;
-    gap:22px;
-    flex-wrap:wrap;
-    font-family:'IBM Plex Mono';
-    font-size:12.5px;
-    color:var(--mute);
-  }
-  .hero-meta a{ text-decoration:none; border-bottom:1px solid transparent; transition:border-color .2s, color .2s; }
-  .hero-meta a:hover{ color:var(--hud); border-color:var(--hud); }
-  .scroll-cue{
-    position:absolute;
-    bottom:28px; left:50%; transform:translateX(-50%);
-    z-index:2;
-    font-family:'IBM Plex Mono';
-    font-size:11px;
-    color:var(--steel);
-    display:flex; flex-direction:column; align-items:center; gap:8px;
-  }
-  .scroll-cue .bar{
-    width:1px; height:34px;
-    background:linear-gradient(to bottom, var(--hud), transparent);
-    animation:scrollpulse 2s ease-in-out infinite;
-  }
-  @keyframes scrollpulse{ 0%,100%{opacity:.3;} 50%{opacity:1;} }
+/* ============ SECTION SHELL ============ */
+section{position:relative;z-index:2}
+.section{padding:110px 40px}
+.wrap{max-width:1280px;margin:0 auto}
+.head{display:flex;align-items:baseline;gap:18px;margin-bottom:60px}
+.head-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.22em;color:var(--cyan);text-transform:uppercase;white-space:nowrap}
+.head-title{font-family:var(--font-disp);font-weight:600;font-size:clamp(30px,4.4vw,48px);letter-spacing:-.02em}
+.head-rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line-strong),transparent)}
+.head-note{font-family:var(--font-mono);font-size:10px;color:var(--ink-faint);letter-spacing:.1em}
 
-  /* ---------- SECTION SHELL ---------- */
-  section{ padding:96px 0; position:relative; }
-  .section-head{
-    display:flex;
-    align-items:baseline;
-    gap:14px;
-    margin-bottom:44px;
-  }
-  .section-num{
-    font-family:'IBM Plex Mono';
-    font-size:13px;
-    color:var(--hud);
-  }
-  .section-title{ font-size:26px; }
-  .section-rule{
-    flex:1;
-    height:1px;
-    background:linear-gradient(to right, var(--steel-dim), transparent);
-  }
+/* corner brackets (HUD reticle) shared with cards */
+.corners{position:relative}
+.corners::before,.corners::after{content:"";position:absolute;width:14px;height:14px;border:2px solid var(--cyan);opacity:.55;transition:opacity .25s}
+.corners::before{top:-1px;left:-1px;border-right:none;border-bottom:none}
+.corners::after{bottom:-1px;right:-1px;border-left:none;border-top:none}
+.corners:hover::before,.corners:hover::after{opacity:1}
 
-  /* ---------- ABOUT ---------- */
-  #about p{
-    font-size:16.5px;
-    color:#C7CCD1;
-    max-width:680px;
-  }
-  .stat-row{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:1px;
-    margin-top:52px;
-    background:var(--steel-dim);
-    border:1px solid var(--steel-dim);
-  }
-  .stat{
-    background:var(--panel);
-    padding:22px 18px;
-    text-align:center;
-  }
-  .stat-num{
-    font-family:'IBM Plex Mono';
-    font-size:28px;
-    color:var(--hud);
-  }
-  .stat-label{
-    font-size:11.5px;
-    color:var(--mute);
-    margin-top:6px;
-  }
-  @media (max-width:640px){ .stat-row{ grid-template-columns:repeat(2,1fr); } }
+/* ============ EXPERIENCE ============ */
+.track{position:relative;padding-left:34px}
+.track::before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:1px;background:linear-gradient(to bottom,var(--cyan),var(--green) 60%,transparent)}
+.exp{position:relative;margin-bottom:26px;opacity:0;transform:translateY(26px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)}
+.exp.in{opacity:1;transform:none}
+.exp::before{
+  content:"";position:absolute;left:-30px;top:26px;width:11px;height:11px;border-radius:50%;
+  background:var(--bg-deep);border:2px solid var(--cyan);box-shadow:0 0 0 4px rgba(56,217,245,.12);
+}
+.exp:hover::before{background:var(--cyan);box-shadow:0 0 0 5px rgba(56,217,245,.2),0 0 22px var(--cyan)}
+.exp-card{
+  background:var(--glass);backdrop-filter:blur(12px);
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:30px 32px;transition:transform .3s,border-color .3s,box-shadow .3s;position:relative;overflow:hidden;
+}
+.exp-card::after{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--cyan),var(--green));transform:scaleX(0);transform-origin:left;transition:transform .45s cubic-bezier(.16,1,.3,1)}
+.exp-card:hover{transform:translateX(6px);border-color:var(--line-strong);box-shadow:var(--shadow)}
+.exp-card:hover::after{transform:scaleX(1)}
+.exp-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.exp-co{font-family:var(--font-disp);font-weight:600;font-size:20px}
+.exp-period{font-family:var(--font-mono);font-size:11px;color:var(--cyan);letter-spacing:.08em;border:1px solid var(--line-strong);border-radius:100px;padding:5px 12px;background:rgba(56,217,245,.06);white-space:nowrap}
+.exp-role{font-size:14px;color:var(--green);font-weight:500;margin-bottom:4px}
+.exp-client{font-family:var(--font-mono);font-size:11px;color:var(--ink-faint);letter-spacing:.04em;margin-bottom:14px}
+.exp-desc{font-size:14px;line-height:1.75;color:var(--ink-dim)}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.tag{
+  font-family:var(--font-mono);font-size:10px;letter-spacing:.05em;color:var(--cyan);
+  border:1px solid rgba(56,217,245,.2);background:rgba(56,217,245,.05);
+  padding:5px 11px;border-radius:6px;transition:background .2s;
+}
+.tag:hover{background:rgba(56,217,245,.15)}
+.tag-green{color:var(--green);border-color:rgba(61,220,132,.22);background:rgba(61,220,132,.05)}
+.tag-green:hover{background:rgba(61,220,132,.15)}
 
-  /* ---------- SKILLS / GAUGES ---------- */
-  .gauge-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit, minmax(230px, 1fr));
-    gap:18px;
-  }
-  .gauge-card{
-    background:var(--panel);
-    border:1px solid var(--steel-dim);
-    border-radius:6px;
-    padding:22px;
-    position:relative;
-  }
-  .gauge-card::before{
-    content:'';
-    position:absolute; top:0; left:0; right:0; height:2px;
-    background:linear-gradient(to right, var(--hud), transparent 70%);
-    border-radius:6px 6px 0 0;
-  }
-  .gauge-card h3{ font-size:15px; margin-bottom:10px; color:var(--paper); }
-  .gauge-card ul{ list-style:none; }
-  .gauge-card li{
-    font-size:13.5px;
-    color:var(--mute);
-    padding:5px 0 5px 16px;
-    position:relative;
-  }
-  .gauge-card li::before{
-    content:'';
-    position:absolute; left:0; top:12px;
-    width:6px; height:1px;
-    background:var(--hud);
-  }
+/* ============ SKILLS ============ */
+.skills-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.skill-featured{grid-column:1/-1}
+.skill-card{
+  background:var(--glass);backdrop-filter:blur(12px);
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:26px;transition:transform .3s,border-color .3s,box-shadow .3s;position:relative;overflow:hidden;
+  opacity:0;transform:translateY(22px);transition:opacity .5s,transform .5s,border-color .3s,box-shadow .3s;
+}
+.skill-card.in{opacity:1;transform:none}
+.skill-card:hover{border-color:var(--line-strong);transform:translateY(-4px);box-shadow:var(--shadow)}
+.skill-title{display:flex;align-items:center;gap:10px;font-family:var(--font-disp);font-weight:600;font-size:16px;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.skill-title .ico{font-size:18px}
+.skill-featured{background:
+  linear-gradient(120deg, rgba(56,217,245,.07), rgba(61,220,132,.05) 55%, rgba(139,124,246,.05)),
+  var(--glass-strong);}
+.skill-featured .skill-title{font-size:20px}
+.featured-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+.feat-col .col-label{font-family:var(--font-mono);font-size:9px;letter-spacing:.2em;color:var(--ink-faint);text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.meter{display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:center;margin-bottom:12px}
+.gauge{position:relative;width:44px;height:44px;flex-shrink:0}
+.gauge svg{width:44px;height:44px;transform:rotate(-90deg)}
+.gauge .g-track{fill:none;stroke:rgba(146,178,230,.14);stroke-width:5}
+.gauge .g-val{fill:none;stroke:url(#gradMono);stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset 1.2s cubic-bezier(.16,1,.3,1)}
+.gauge .g-ticks{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:9px;color:var(--ink)}
+.meter-name{font-size:12.5px;color:var(--ink-dim);line-height:1.35}
+.meter-pct{font-family:var(--font-mono);font-size:10px;color:var(--cyan)}
+.featured-grid .meter-name{font-size:12px}
+.feat-tags{margin-top:6px;padding-top:20px;border-top:1px solid var(--line)}
+svg.mgrad{position:absolute;width:0;height:0}
 
-  /* ---------- EXPERIENCE / TRIP LOG ---------- */
-  .log{
-    position:relative;
-    padding-left:28px;
-    border-left:1px solid var(--steel-dim);
-  }
-  .log-entry{
-    position:relative;
-    padding-bottom:52px;
-  }
-  .log-entry:last-child{ padding-bottom:0; }
-  .log-entry::before{
-    content:'';
-    position:absolute; left:-33px; top:4px;
-    width:9px; height:9px;
-    border-radius:50%;
-    background:var(--asphalt);
-    border:2px solid var(--hud);
-  }
-  .log-date{
-    font-family:'IBM Plex Mono';
-    font-size:12px;
-    color:var(--hud);
-    margin-bottom:6px;
-  }
-  .log-role{ font-size:19px; margin-bottom:2px; }
-  .log-org{
-    font-size:13.5px; color:var(--mute); margin-bottom:14px;
-  }
-  .log-org span{ color:var(--steel); }
-  .log-entry ul{ list-style:none; }
-  .log-entry li{
-    font-size:14.5px;
-    color:#C7CCD1;
-    padding:6px 0 6px 18px;
-    position:relative;
-    max-width:680px;
-  }
-  .log-entry li::before{
-    content:'▸';
-    position:absolute; left:0; top:5px;
-    color:var(--steel);
-    font-size:11px;
-  }
+/* ============ PROJECTS ============ */
+.projects{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-bottom:20px}
+.pcard{
+  background:var(--glass);backdrop-filter:blur(12px);
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:30px;position:relative;overflow:hidden;
+  opacity:0;transform:translateY(24px);transition:opacity .6s,transform .6s,border-color .3s,box-shadow .3s;
+  cursor:default;
+}
+.pcard.in{opacity:1;transform:none}
+.pcard::before{content:"";position:absolute;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(56,217,245,.1),transparent 70%);top:-80px;right:-80px;transition:transform .5s}
+.pcard:hover::before{transform:scale(1.6)}
+.pcard:hover{border-color:var(--line-strong)}
+.pcard .tilt{
+  transition:transform .25s ease-out;transform-style:preserve-3d;will-change:transform;
+}
+.pcard-num{font-family:var(--font-mono);font-size:10px;letter-spacing:.18em;color:var(--ink-faint);margin-bottom:12px}
+.pcard-name{font-family:var(--font-disp);font-weight:600;font-size:20px;margin-bottom:6px}
+.pcard-client{font-size:12px;color:var(--green);margin-bottom:14px}
+.pcard-desc{font-size:13.5px;line-height:1.7;color:var(--ink-dim)}
+.pcard .tags{margin-top:18px}
 
-  /* ---------- PROJECTS ---------- */
-  .proj-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));
-    gap:18px;
-  }
-  .proj-card{
-    background:var(--panel);
-    border:1px solid var(--steel-dim);
-    border-radius:6px;
-    padding:24px;
-    transition:border-color .25s, transform .25s;
-  }
-  .proj-card:hover{ border-color:var(--hud); transform:translateY(-3px); }
-  .proj-tag{
-    font-family:'IBM Plex Mono';
-    font-size:11px;
-    color:var(--amber);
-    margin-bottom:10px;
-    display:block;
-  }
-  .proj-card h3{ font-size:16.5px; margin-bottom:10px; }
-  .proj-card p{ font-size:13.5px; color:var(--mute); }
+/* platform card (wide) */
+.p2{
+  background:
+    linear-gradient(120deg, rgba(61,220,132,.05), rgba(56,217,245,.04)),
+    var(--glass-strong);
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:34px;position:relative;overflow:hidden;
+  opacity:0;transform:translateY(24px);transition:opacity .6s,transform .6s,border-color .3s;
+}
+.p2.in{opacity:1;transform:none}
+.p2:hover{border-color:rgba(61,220,132,.4)}
+.p2-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:28px}
+.p2-head .p2-flag{font-family:var(--font-mono);font-size:10px;letter-spacing:.2em;color:var(--green);margin-bottom:12px;text-transform:uppercase}
+.p2-name{font-family:var(--font-disp);font-weight:600;font-size:22px;margin-bottom:6px}
+.p2-client{font-size:12px;color:var(--ink-dim);margin-bottom:14px}
+.p2-desc{font-size:13.5px;line-height:1.7;color:var(--ink-dim)}
+.p2-tags{display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start}
+.apps{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px;padding-top:20px;border-top:1px solid var(--line)}
+.app{
+  font-family:var(--font-mono);font-size:10.5px;letter-spacing:.04em;color:var(--ink-dim);
+  border:1px solid var(--line);border-radius:100px;padding:7px 13px;background:rgba(10,17,32,.5);
+  transition:border-color .2s,color .2s,transform .2s;
+}
+.app:hover{color:var(--cyan);border-color:var(--line-strong);transform:translateY(-2px)}
 
-  /* ---------- APPS / LAUNCHER GRID ---------- */
-  .launcher-note{
-    font-size:14.5px; color:var(--mute); max-width:640px; margin-bottom:36px;
-  }
-  .app-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));
-    gap:14px;
-  }
-  .app-tile{
-    background:var(--panel);
-    border:1px solid var(--steel-dim);
-    border-radius:14px;
-    padding:18px 14px;
-    text-decoration:none;
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-    transition:border-color .2s, background .2s, transform .2s;
-  }
-  .app-tile:hover{
-    border-color:var(--hud);
-    background:var(--panel-2);
-    transform:translateY(-2px);
-  }
-  .app-icon{
-    width:38px; height:38px;
-    border-radius:10px;
-    background:linear-gradient(135deg, var(--steel-dim), var(--panel-2));
-    border:1px solid var(--steel-dim);
-    display:flex; align-items:center; justify-content:center;
-    font-family:'Space Grotesk';
-    font-weight:700;
-    font-size:14px;
-    color:var(--hud);
-  }
-  .app-name{ font-size:13px; color:var(--paper); font-weight:500; }
-  .app-cat{ font-family:'IBM Plex Mono'; font-size:10px; color:var(--mute); }
+/* ============ REVIEWS ============ */
+.reviews{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.quote{
+  background:var(--glass);backdrop-filter:blur(12px);
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:34px;position:relative;
+  transition:transform .3s,border-color .3s;
+  opacity:0;transform:translateY(24px);transition:opacity .6s,transform .6s,border-color .3s;
+}
+.quote.in{opacity:1;transform:none}
+.quote:nth-child(odd){transform:translateY(24px) rotate(-0.6deg)}
+.quote:nth-child(even){transform:translateY(24px) rotate(0.6deg)}
+.quote.in:nth-child(odd){transform:rotate(-0.6deg)}
+.quote.in:nth-child(even){transform:rotate(0.6deg)}
+.quote:hover{border-color:var(--line-strong)}
+.quote-mark{font-family:var(--font-disp);font-size:72px;line-height:.6;background:linear-gradient(120deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:18px}
+.quote-text{font-size:15px;line-height:1.8;color:var(--ink-dim);margin-bottom:26px}
+.quote-foot{display:flex;align-items:center;gap:14px;border-top:1px solid var(--line);padding-top:20px}
+.avatar{
+  width:46px;height:46px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:13px;font-weight:600;color:#061018;
+  background:linear-gradient(135deg,var(--cyan),var(--green));
+  box-shadow:0 0 0 3px rgba(56,217,245,.18);
+}
+.quote-name{font-family:var(--font-disp);font-weight:600;font-size:15px}
+.quote-role{font-family:var(--font-mono);font-size:10px;color:var(--ink-faint);letter-spacing:.04em;margin-top:3px}
 
-  /* ---------- EDUCATION / LANG ---------- */
-  .ed-grid{
-    display:grid;
-    grid-template-columns:1.3fr 1fr;
-    gap:40px;
-  }
-  @media (max-width:700px){ .ed-grid{ grid-template-columns:1fr; gap:32px; } }
-  .ed-item{ margin-bottom:20px; }
-  .ed-item h3{ font-size:15.5px; margin-bottom:4px; }
-  .ed-item p{ font-size:13.5px; color:var(--mute); }
-  .lang-bar{ margin-bottom:16px; }
-  .lang-row{ display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; }
-  .lang-row span:last-child{ font-family:'IBM Plex Mono'; color:var(--hud); font-size:11.5px; }
-  .lang-track{ height:3px; background:var(--steel-dim); border-radius:2px; overflow:hidden; }
-  .lang-fill{ height:100%; background:var(--hud); }
+/* ============ CONTACT ============ */
+.contact-card{
+  display:grid;grid-template-columns:1.2fr auto 1fr;gap:70px;align-items:stretch;
+  background:var(--glass);backdrop-filter:blur(14px);
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:56px;position:relative;overflow:hidden;
+}
+.contact-card::before{content:"";position:absolute;inset:0;background:radial-gradient(circle 300px at 80% 0%,rgba(139,124,246,.1),transparent 70%)}
+.contact-l{position:relative}
+.contact-title{font-family:var(--font-disp);font-weight:600;font-size:34px;letter-spacing:-.02em;margin-bottom:12px}
+.contact-sub{color:var(--ink-dim);font-size:15px;line-height:1.7;max-width:380px}
+.contact-mid{
+  position:relative;display:flex;align-items:center;justify-content:center;
+  min-width:120px;
+}
+.contact-ring{position:absolute;width:120px;height:120px;border-radius:50%;border:1px dashed var(--line-strong);animation:spin 16s linear infinite}
+.contact-ring:nth-child(2){width:88px;height:88px;border-style:solid;border-color:rgba(61,220,132,.25);animation-direction:reverse;animation-duration:11s}
+.contact-ring:nth-child(3){width:8px;height:8px;background:var(--cyan);box-shadow:0 0 18px var(--cyan);border:none;animation:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.contact-r{position:relative;display:flex;flex-direction:column;gap:12px}
+.citem{
+  display:flex;align-items:center;gap:14px;text-decoration:none;color:var(--ink);
+  border:1px solid var(--line);border-radius:12px;padding:14px 18px;
+  background:rgba(10,17,32,.45);transition:border-color .2s,transform .2s;
+}
+.citem:hover{border-color:var(--line-strong);transform:translateX(4px)}
+.citem-ico{width:38px;height:38px;flex-shrink:0;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(56,217,245,.08);border:1px solid var(--line-strong)}
+.citem-label{font-family:var(--font-mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint)}
+.citem-value{font-size:13.5px;font-weight:500;margin-top:2px;word-break:break-all}
 
-  /* ---------- FOOTER / CONTACT ---------- */
-  #contact{
-    text-align:center;
-    padding:110px 0 70px;
-  }
-  #contact h2{
-    font-size:clamp(28px,5vw,42px);
-    margin-bottom:18px;
-  }
-  #contact p{ color:var(--mute); margin-bottom:36px; }
-  .cta-btn{
-    display:inline-flex;
-    align-items:center;
-    gap:10px;
-    background:var(--hud);
-    color:#04181D;
-    font-family:'Space Grotesk';
-    font-weight:600;
-    font-size:14.5px;
-    padding:14px 28px;
-    border-radius:4px;
-    text-decoration:none;
-    transition:box-shadow .25s, transform .25s;
-  }
-  .cta-btn:hover{ box-shadow:0 0 26px -2px var(--hud); transform:translateY(-2px); }
-  footer{
-    text-align:center;
-    padding:26px 0 40px;
-    font-family:'IBM Plex Mono';
-    font-size:11px;
-    color:var(--steel);
-  }
+/* ============ FOOTER ============ */
+footer{border-top:1px solid var(--line);padding:34px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;position:relative;z-index:2}
+.foot-mono{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;color:var(--ink-faint)}
+.foot-sign{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;color:var(--ink-dim)}
+.foot-sign b{color:var(--cyan);font-weight:500}
+a:focus-visible{outline:2px solid var(--cyan);outline-offset:3px;border-radius:4px}
 
-  @media (prefers-reduced-motion: reduce){
-    .scroll-cue .bar{ animation:none; }
-    html{ scroll-behavior:auto; }
-  }
+/* ============ RESPONSIVE ============ */
+@media (max-width:1080px){
+  .skills-grid{grid-template-columns:1fr 1fr}
+  .featured-grid{grid-template-columns:1fr 1fr 1fr}
+}
+@media (max-width:900px){
+  .hero{padding:120px 24px 70px}
+  .stats,.section{padding-left:24px;padding-right:24px}
+  .contact-card{grid-template-columns:1fr;gap:36px}
+  .contact-mid{display:none}
+  .p2-grid{grid-template-columns:1fr}
+  .topbar{padding:16px 20px}
+  .nav{display:none}
+  #scene{opacity:.5}
+}
+@media (max-width:720px){
+  .skills-grid,.projects,.reviews,.featured-grid{grid-template-columns:1fr}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .stat-num{font-size:34px}
+  .hero-copy{font-size:15px}
+}
 </style>
 </head>
 <body>
 
-<nav>
-  <div class="nav-id"><span class="nav-dot"></span>RAMESH RANGAM</div>
-  <div class="nav-links">
-    <a href="#about">About</a>
-    <a href="#skills">Skills</a>
-    <a href="#experience">Experience</a>
-    <a href="#projects">Projects</a>
-    <a href="#apps">Apps</a>
-    <a href="#contact">Contact</a>
+<!-- 3D BACKGROUND -->
+<canvas id="scene" class="fx js-scene" aria-hidden="true"></canvas>
+<div class="fx fade-top"></div>
+<div class="fx fade-bottom"></div>
+<div class="fx vignette"></div>
+<div class="fx scanlines"></div>
+<div class="css-fallback" aria-hidden="true">
+  <div class="car-art"><div class="b"></div><div class="c"></div></div>
+</div>
+
+<!-- NAV -->
+<nav class="topbar">
+  <a class="brand" href="#top">
+    <span class="brand-mark"></span>
+    <span>
+      <span class="brand-name">RAMESH RANGAM</span>
+      <div class="brand-sub">SYS.00 · Android Engineer</div>
+    </span>
+  </a>
+  <div class="nav">
+    <a href="#experience">Career</a>
+    <a href="#skills">Modules</a>
+    <a href="#projects">Builds</a>
+    <a href="#reviews">Feedback</a>
+    <a href="#contact">Uplink</a>
   </div>
 </nav>
 
-<section id="hero">
-  <canvas id="hero-canvas"></canvas>
-  <div class="hero-inner">
-    <div class="hero-kicker"><span class="line"></span>ANDROID · KOTLIN · JETPACK COMPOSE<span class="line"></span></div>
-    <h1 class="hero-title">Building the <span class="accent">instrument cluster</span><br>of your Android product.</h1>
-    <p class="hero-sub">Lead Android Engineer & Architect with 10+ years shipping production apps across automotive, healthcare, and transit — from CARIAD's One Infotainment OS to multi-tenant transit apps riding in dozens of American cities.</p>
-    <div class="hero-meta">
-      <a href="mailto:ramesh.de036@gmail.com">ramesh.de036@gmail.com</a>
-      <span>·</span>
-      <a href="tel:+4915231428304">+49 15231428304</a>
-      <span>·</span>
-      <a href="https://www.linkedin.com/in/ramesh-rangam-3a5754107/" target="_blank">LinkedIn</a>
-      <span>·</span>
-      <a href="https://github.com/rangamramesh" target="_blank">GitHub</a>
-      <span>·</span>
-      <span>Berlin, DE</span>
+<!-- HERO -->
+<header class="hero" id="top">
+  <div class="hero-grid">
+    <div class="hero-line"><span class="pulse"></span> open to roles · berlin, de</div>
+    <h1 class="hero-name">
+      Ramesh
+      <span class="ghost">Rangam</span>
+    </h1>
+    <div class="hero-role">
+      <h2>Senior Android Engineer</h2>
+      <span class="tag">Automotive HMI</span>
+      <span class="tag" style="border-color:rgba(61,220,132,.35);color:var(--green)">AAOS · VHAL</span>
+      <span class="tag" style="border-color:rgba(139,124,246,.35);color:var(--violet)">Healthcare</span>
+    </div>
+    <p class="hero-copy">
+      10+ years of experience shipping Android at <b>automotive</b>, <b>healthcare</b> and <b>consumer</b> scale.
+      Deep in the frame — SystemUI, Launcher, VHAL, AIDL — turning raw vehicle hardware into
+      interfaces drivers trust. One Infotainment OS, 4 VW-group brands, 50K+ happy users since.
+    </p>
+    <div class="cta-row">
+      <a href="#" class="cta cta-primary" id="hero-email-link">// deploy contact</a>
+      <a href="#projects" class="cta cta-ghost">view the work</a>
     </div>
   </div>
-  <div class="scroll-cue"><span>SCROLL</span><span class="bar"></span></div>
-</section>
+</header>
 
-<div class="wrap">
-
-  <section id="about">
-    <div class="section-head">
-      <span class="section-num mono">01</span>
-      <h2 class="section-title">About</h2>
-      <div class="section-rule"></div>
-    </div>
-    <p>Lead Android Engineer and Architect with 10+ years designing and delivering production Android applications in Kotlin at scale. Deep expertise in Jetpack Compose, MVVM/MVI architecture, and reactive programming with Kotlin Coroutines and Flow, with a strong track record architecting modular, testable app foundations — Clean Architecture, SOLID, Dependency Injection — across automotive, healthcare, and transportation platforms. Combines hands-on architectural ownership with technical leadership: setting coding standards, driving test strategy, and mentoring distributed engineering teams in fast-moving, cross-functional Agile environments. Currently exploring Kotlin Multiplatform (KMP) for cross-platform code sharing.</p>
-
-    <div class="stat-row">
-      <div class="stat"><div class="stat-num">10+</div><div class="stat-label">Years in Android</div></div>
-      <div class="stat"><div class="stat-num">6</div><div class="stat-label">Companies</div></div>
-      <div class="stat"><div class="stat-num">19+</div><div class="stat-label">Apps shipped to Play Store</div></div>
-      <div class="stat"><div class="stat-num">3</div><div class="stat-label">Industries: auto, health, transit</div></div>
-    </div>
-  </section>
-
-  <section id="skills">
-    <div class="section-head">
-      <span class="section-num mono">02</span>
-      <h2 class="section-title">Core competencies</h2>
-      <div class="section-rule"></div>
-    </div>
-    <div class="gauge-grid">
-      <div class="gauge-card">
-        <h3>Architecture & Leadership</h3>
-        <ul>
-          <li>MVVM, MVI, Clean Architecture</li>
-          <li>SOLID principles, modular app design</li>
-          <li>Architecture ownership & governance</li>
-          <li>Mentoring, distributed team leadership</li>
-        </ul>
-      </div>
-      <div class="gauge-card">
-        <h3>Reactive & Async</h3>
-        <ul>
-          <li>Kotlin Coroutines, Flow, StateFlow</li>
-          <li>Structured concurrency</li>
-          <li>Asynchronous data pipelines</li>
-        </ul>
-      </div>
-      <div class="gauge-card">
-        <h3>UI Development</h3>
-        <ul>
-          <li>Jetpack Compose, Material Design</li>
-          <li>Android SDK</li>
-          <li>Kotlin Multiplatform (KMP)</li>
-          <li>Responsive, performant UI</li>
-        </ul>
-      </div>
-      <div class="gauge-card">
-        <h3>Testing & Quality</h3>
-        <ul>
-          <li>JUnit, Espresso, Robolectric, Mockito</li>
-          <li>TDD / BDD</li>
-          <li>SonarQube, code review leadership</li>
-          <li>Dependency Injection (Dagger)</li>
-        </ul>
-      </div>
-      <div class="gauge-card">
-        <h3>Data & Backend</h3>
-        <ul>
-          <li>REST APIs, Room, SQLite</li>
-          <li>Firebase, BLE</li>
-        </ul>
-      </div>
-      <div class="gauge-card">
-        <h3>DevOps & Collaboration</h3>
-        <ul>
-          <li>Git, Gerrit, Jenkins</li>
-          <li>GitHub Actions, Azure DevOps</li>
-          <li>Agile / Scrum</li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <section id="experience">
-    <div class="section-head">
-      <span class="section-num mono">03</span>
-      <h2 class="section-title">Experience</h2>
-      <div class="section-rule"></div>
-    </div>
-    <div class="log">
-
-      <div class="log-entry">
-        <div class="log-date">FEB 2023 — PRESENT</div>
-        <div class="log-role">Technical Lead / Senior Software Engineer</div>
-        <div class="log-org">IAV GmbH <span>· Client: CARIAD / Volkswagen Group · Berlin, Germany</span></div>
-        <ul>
-          <li>Built and own reusable, modular UI components using Jetpack Compose and Clean Architecture (MVVM), standardizing shared UI/UX across 6+ product variants.</li>
-          <li>Architected asynchronous data pipelines with Kotlin Coroutines and Flow between native system layers and the application framework, keeping UI responsive under real-time constraints.</li>
-          <li>Drove configuration-driven, variant-specific customization across 6+ product brands, enabling feature toggling and theming without rebuilding the base application.</li>
-          <li>Established coding standards, led design and code reviews, and introduced SonarQube governance plus JUnit/Robolectric/Mockito testing discipline.</li>
-          <li>Owned performance optimization and memory management for resource-constrained environments.</li>
-          <li>Led technical estimation and sprint planning for a distributed team of 5–10 engineers; mentored 2–4 engineers on Kotlin architecture and testing.</li>
-        </ul>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-date">FEB 2021 — JAN 2023</div>
-        <div class="log-role">Senior Software Engineer</div>
-        <div class="log-org">Persistent Systems <span>· Client: Wellforce · Pune, India</span></div>
-        <ul>
-          <li>Designed and delivered a healthcare platform in Kotlin using MVVM, Clean Architecture, and SOLID principles, deployed across multiple clinics and hospitals.</li>
-          <li>Implemented BLE integrations for medical telemetry devices using Coroutines and Flow for real-time, reactive data sync between wearables and the platform.</li>
-          <li>Built Azure DevOps CI/CD pipelines with automated deployment workflows.</li>
-          <li>Integrated MyChart SDK, AWS services, iHealth SDK, and Amazon Polly to extend interoperability with third-party health systems.</li>
-        </ul>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-date">MAY 2020 — DEC 2020</div>
-        <div class="log-role">Software Engineer</div>
-        <div class="log-org">People Tech Group <span>· Client: General Motors · Hyderabad, India</span></div>
-        <ul>
-          <li>Developed automotive HMI and infotainment features, including media and connectivity modules, for General Motors vehicle programs.</li>
-          <li>Built telemetry processing and vehicle-monitoring functionality used across dozens of vehicle variants, including a trailer monitoring module.</li>
-          <li>Collaborated with global Agile teams via Gerrit and Jenkins across multi-timezone stakeholders.</li>
-        </ul>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-date">APR 2017 — APR 2020</div>
-        <div class="log-role">Software Engineer</div>
-        <div class="log-org">OmniWyse Technologies <span>· Client: SPX · Hyderabad, India</span></div>
-        <ul>
-          <li>Delivered Android applications for transportation and mobility platforms, supporting multi-tenant transit apps used by 6–10 transit agencies from a single shared codebase.</li>
-          <li>Led migration from Java to Kotlin across the codebase and implemented offline-first architecture, improving reliability in low-connectivity conditions.</li>
-          <li>Published 7–8 apps to the Play Store, reaching 500–50,000 active users per app.</li>
-        </ul>
-      </div>
-
-      <div class="log-entry">
-        <div class="log-date">JUN 2016 — MAR 2017</div>
-        <div class="log-role">Software Engineer</div>
-        <div class="log-org">Akranta Info Solutions <span>· Hyderabad, India</span></div>
-        <ul>
-          <li>Built enterprise Android proof-of-concept and client demonstration applications to support pre-sales technical evaluations.</li>
-        </ul>
-      </div>
-
-    </div>
-  </section>
-
-  <section id="projects">
-    <div class="section-head">
-      <span class="section-num mono">04</span>
-      <h2 class="section-title">Selected projects</h2>
-      <div class="section-rule"></div>
-    </div>
-    <div class="proj-grid">
-      <div class="proj-card">
-        <span class="proj-tag">ON-DEVICE AI</span>
-        <h3>Multimodal AI Assistant</h3>
-        <p>Android app running Gemma language models fully on-device, with multimodal voice and image interaction and local speech-input processing — no cloud dependency.</p>
-      </div>
-      <div class="proj-card">
-        <span class="proj-tag">KMP</span>
-        <h3>Kotlin Multiplatform Exploration</h3>
-        <p>Personal project prototyping shared business logic across Android and iOS using KMP, evaluating multiplatform architecture patterns and code-sharing strategy.</p>
-      </div>
-      <div class="proj-card">
-        <span class="proj-tag">COMPUTER VISION</span>
-        <h3>Driver Monitoring System</h3>
-        <p>Real-time fatigue detection pipeline built with CameraX and ML Kit computer vision.</p>
-      </div>
-    </div>
-  </section>
-
-  <section id="apps">
-    <div class="section-head">
-      <span class="section-num mono">05</span>
-      <h2 class="section-title">Published to Play Store</h2>
-      <div class="section-rule"></div>
-    </div>
-    <p class="launcher-note">A working sample of shipped, live applications — spanning a multi-tenant transit platform deployed across a dozen U.S. transit agencies from one shared codebase, a healthcare platform, and independent freelance builds. Tap any tile to open its Play Store listing.</p>
-
-    <div class="app-grid">
-      <a class="app-tile" href="https://play.google.com/store/apps/details?id=com.wellforce.hip" target="_blank">
-        <div class="app-icon">W</div>
-        <div class="app-name">MyWellPall</div>
-        <div class="app-cat">Healthcare · Wellforce</div>
-      </a>
-      <a class="app-tile" href="https://play.google.com/store/apps/details?id=org.genfare.grtc." target="_blank">
-        <div class="app-icon">G</div>
-        <div class="app-name">GRTC</div>
-        <div class="app-cat">Transit · Richmond</div>
-      </a>
-      <a class="app-tile" href="https://play.google.com/store/apps/details?id=org.cdta.iride" target="_blank">
-        <div class="app-icon">C</div>
-        <div class="app-name">CDTA Navigator</div>
-        <div class="app-cat">Transit · Albany</div>
-      </a>
-      <a class="app-tile" href="https://play.google.com/store/apps/details?id=com.genfare.mobile2.broward" target="_blank">
-        <div class="app-icon">B</div>
-        <div class="app-name">BCT</div>
-        <div class="app-cat">Transit · Broward</div>
-      </a>
-      <a class="app-tile" href="https://play.google.com/store/apps/details?id=com.genfare.mobile2.belleville" target="_blank">
-        <div class="app-icon">B</div>
-        <div class="app-name">BVTA</div>
-        <div class="app-cat">Transit · Belleville</div>
-      </a>
-      <a class="app-tile" href="https://play.google.com/store/apps/details?id=com.genfare.mobile2.gbmetro" target="_blank">
-        <div class="app-icon">G</div>
-        <div class="app-name">GBM eFare</div>
-        <div class="app-cat">Transit · Green Bay</div>
-      </a>
-      <a class="app-tile" href="https://play.google.com/store/apps/details?id=com.genfare.mobile2.broomecounty" target="_blank">
-        <div class="app-icon">G</div>
-        <div class="app-name">GoPass</div>
-        <div class="app-cat">Transit · Broome County</div>
-      </a>
-      <a class="app-tile" href="https://play.google.com/store/apps/details?id=com.genfare.mobile2.mywave" target="_blank">
-        <div class="app-icon">W</div>
-        <div class="app-name">myWave</div>
-        <div class="app-cat">Transit · Wave Transit</div>
-      </a>
-      <a class="app-tile" href="https://play.google.com/store/apps/details?id=com.genfare.mobile2.bloomington" target="_blank">
-        <div class="app-icon">C</div>
-        <div class="app-name">COTR</div>
-        <div class="app-cat">Transit · Connect Transit</div>
-      </a>
-      <a class="app-tile" href="https://play.google.com/store/apps/details?id=com.genfare.mobile2.dubuque" target="_blank">
-        <div class="app-icon">J</div>
-        <div class="app-name">MyJule</div>
-        <div class="app-cat">Transit · Dubuque</div>
-      </a>
-      <a class="app-tile" href="https://play.google.com/store/apps/details?id=com.genfare.mobile2.stcloud" target="_blank">
-        <div class="app-icon">S</div>
-        <div class="app-name">Smart Ride</div>
-        <div class="app-cat">Transit · St. Cloud</div>
-      </a>
-      <a class="app-tile" href="https://play.google.com/store/apps/details?id=com.genfare.mobile2.laredo" target="_blank">
-        <div class="app-icon">E</div>
-        <div class="app-name">El Metro</div>
-        <div class="app-cat">Transit · Laredo</div>
-      </a>
-      <a class="app-tile" href="https://play.google.com/store/apps/details?id=com.genfare.mobile2.wichita" target="_blank">
-        <div class="app-icon">R</div>
-        <div class="app-name">Ride Wichita</div>
-        <div class="app-cat">Transit · Wichita</div>
-      </a>
-      <a class="app-tile" href="https://play.google.com/store/apps/details?id=com.genfare.mobile2.ltran" target="_blank">
-        <div class="app-icon">L</div>
-        <div class="app-name">LeeTran</div>
-        <div class="app-cat">Transit · Lee County</div>
-      </a>
-      <a class="app-tile" href="https://play.google.com/store/apps/details?id=com.irapp.ir" target="_blank">
-        <div class="app-icon">I</div>
-        <div class="app-name">IRoomMates</div>
-        <div class="app-cat">Freelance</div>
-      </a>
-      <a class="app-tile" href="https://play.google.com/store/apps/details?id=com.subletapp.sublet" target="_blank">
-        <div class="app-icon">S</div>
-        <div class="app-name">Sublet App</div>
-        <div class="app-cat">Freelance</div>
-      </a>
-      <a class="app-tile" href="https://play.google.com/store/apps/details?id=com.ramanujan.andarikiayurvedam" target="_blank">
-        <div class="app-icon">A</div>
-        <div class="app-name">Andariki Ayurvedam</div>
-        <div class="app-cat">Freelance</div>
-      </a>
-      <a class="app-tile" href="https://play.google.com/store/apps/details?id=com.ramanujaniss.truewish" target="_blank">
-        <div class="app-icon">T</div>
-        <div class="app-name">True Wish</div>
-        <div class="app-cat">Freelance</div>
-      </a>
-      <a class="app-tile" href="https://play.google.com/store/apps/details?id=com.ramanujaniss.einvitationcard" target="_blank">
-        <div class="app-icon">I</div>
-        <div class="app-name">Invite App</div>
-        <div class="app-cat">Freelance</div>
-      </a>
-    </div>
-  </section>
-
-  <section id="education">
-    <div class="section-head">
-      <span class="section-num mono">06</span>
-      <h2 class="section-title">Education & languages</h2>
-      <div class="section-rule"></div>
-    </div>
-    <div class="ed-grid">
-      <div>
-        <div class="ed-item">
-          <h3>B.Tech, Electronics & Communication Engineering</h3>
-          <p>JNTUA — R.G.M College of Engineering and Technology, 2013–2016</p>
-        </div>
-        <div class="ed-item">
-          <h3>Android Automotive / AOSP Internals Certification</h3>
-          <p>Applied AOSP internals for automotive infotainment systems</p>
-        </div>
-        <div class="ed-item">
-          <h3>Bravo Team Award</h3>
-          <p>Recognized for team contribution and delivery</p>
-        </div>
-      </div>
-      <div>
-        <div class="lang-bar">
-          <div class="lang-row"><span>English</span><span>PROFESSIONAL</span></div>
-          <div class="lang-track"><div class="lang-fill" style="width:95%"></div></div>
-        </div>
-        <div class="lang-bar">
-          <div class="lang-row"><span>German</span><span>A2 — IMPROVING</span></div>
-          <div class="lang-track"><div class="lang-fill" style="width:28%"></div></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
+<!-- STATS -->
+<div class="stats">
+  <div class="stat">
+    <div class="stat-label">Years Experience</div>
+    <div class="stat-num" data-count="10">0</div>
+    <div class="stat-note">YR.2016 — PRESENT</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Apps delivered</div>
+    <div class="stat-num" data-count="20">0</div>
+    <div class="stat-note">PLAY STORE · ENTERPRISE</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Companies</div>
+    <div class="stat-num" data-count="5">0</div>
+    <div class="stat-note">3 CONTINENTS</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Active users</div>
+    <div class="stat-num" data-count="50">0</div>
+    <div class="stat-note">K+ · GENFARE SUITE</div>
+  </div>
 </div>
 
-<section id="contact">
+<!-- EXPERIENCE -->
+<section class="section" id="experience">
   <div class="wrap">
-    <h2>Let's build something that ships.</h2>
-    <p>Open to Lead / Architect roles in Android, automotive HMI, or Kotlin Multiplatform.</p>
-    <a class="cta-btn" href="mailto:ramesh.de036@gmail.com">Get in touch →</a>
+    <div class="head">
+      <span class="head-eyebrow">SYS.01</span>
+      <h2 class="head-title">Career Pod</h2>
+      <div class="head-rule"></div>
+      <span class="head-note">CHRONICLE / SORTED DESC</span>
+    </div>
+    <div class="track">
+
+      <div class="exp">
+        <div class="exp-card corners">
+          <div class="exp-top">
+            <div class="exp-co">IAV GmbH</div>
+            <span class="exp-period">2023 — PRESENT</span>
+          </div>
+          <div class="exp-role">Senior Android Engineer · Automotive HMI</div>
+          <div class="exp-client">Berlin, Germany — Client: CARIAD · VW · SKODA · FORD · SEAT</div>
+          <p class="exp-desc">Lead SystemUI &amp; Launcher development for the One Infotainment OS — an AOSP platform powering multiple VW Group brands. Integrated VHAL for vehicle hardware communication and the RSI DataTool for real car simulation. Drive architecture decisions, sprint planning, and junior mentoring.</p>
+          <div class="tags">
+            <span class="tag">AOSP</span><span class="tag">Kotlin</span><span class="tag">SystemUI</span><span class="tag">VHAL</span><span class="tag">SonarQube</span><span class="tag tag-green">HMI</span><span class="tag">CI/CD</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="exp">
+        <div class="exp-card corners">
+          <div class="exp-top">
+            <div class="exp-co">Persistent Systems</div>
+            <span class="exp-period">2021 — 2023</span>
+          </div>
+          <div class="exp-role">Android Engineer · Health Innovation Platform</div>
+          <div class="exp-client">Pune, India — Client: WELLFORCE HEALTHCARE</div>
+          <p class="exp-desc">Built a health innovation platform from scratch using Clean Architecture. Integrated BLE devices for patient vitals monitoring, the MyChart SDK, AWS Analytics and the Polly SDK. Managed Azure DevOps CI/CD pipelines and coordinated distributed Scrum teams.</p>
+          <div class="tags">
+            <span class="tag">Kotlin</span><span class="tag">Clean Architecture</span><span class="tag tag-green">BLE</span><span class="tag">REST API</span><span class="tag">Azure DevOps</span><span class="tag">AWS</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="exp">
+        <div class="exp-card corners">
+          <div class="exp-top">
+            <div class="exp-co">People Tech Group</div>
+            <span class="exp-period">MAY — DEC 2020</span>
+          </div>
+          <div class="exp-role">Android Engineer · HMI Infotainment</div>
+          <div class="exp-client">Hyderabad, India — Client: GENERAL MOTORS</div>
+          <p class="exp-desc">Developed HMI infotainment features for GM on AAOS architecture. Implemented MVVM/MVP with VHAL integration for vehicle property extraction. Collaborated through Gerrit for review and Jenkins for CI.</p>
+          <div class="tags">
+            <span class="tag">Kotlin</span><span class="tag">AAOS</span><span class="tag">VHAL</span><span class="tag tag-green">MVVM</span><span class="tag">MVP</span><span class="tag">Gerrit</span><span class="tag">Jenkins</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="exp">
+        <div class="exp-card corners">
+          <div class="exp-top">
+            <div class="exp-co">OmniWyse Technologies</div>
+            <span class="exp-period">2017 — 2020</span>
+          </div>
+          <div class="exp-role">Android Developer · Transit &amp; Mobile Apps</div>
+          <div class="exp-client">Hyderabad, India — Client: SPX CORPORATION, US</div>
+          <p class="exp-desc">Shipped 7–8 Play Store apps with 500–50K active users. Built the multi-tenant Genfare ticketing platform powering 10+ transit agencies — trip planning, real-time arrivals, QR ticketing, Google Maps navigation — from a single codebase.</p>
+          <div class="tags">
+            <span class="tag">Java</span><span class="tag tag-green">Kotlin</span><span class="tag">Google Maps SDK</span><span class="tag">Multi-tenant</span><span class="tag">Play Store</span><span class="tag">Crashlytics</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="exp">
+        <div class="exp-card corners">
+          <div class="exp-top">
+            <div class="exp-co">Akranta Info Solutions</div>
+            <span class="exp-period">2016 — 2017</span>
+          </div>
+          <div class="exp-role">Junior Software Engineer</div>
+          <div class="exp-client">Hyderabad, India</div>
+          <p class="exp-desc">Started the career building POC projects for client verification alongside senior engineers. Built foundational Android and Java skills while contributing to internal demos and client presentations.</p>
+          <div class="tags">
+            <span class="tag">Android</span><span class="tag">Java</span><span class="tag tag-green">POC</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
 </section>
 
-<footer>© 2026 RAMESH RANGAM · BERLIN, DE</footer>
+<!-- SKILLS -->
+<section class="section" id="skills">
+  <div class="wrap">
+    <div class="head">
+      <span class="head-eyebrow">SYS.02</span>
+      <h2 class="head-title">System Modules</h2>
+      <div class="head-rule"></div>
+      <span class="head-note">PROFILED LOAD</span>
+    </div>
 
+    <svg class="mgrad" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="gradMono" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#38d9f5"/>
+          <stop offset="1" stop-color="#3ddc84"/>
+        </linearGradient>
+        <linearGradient id="gradWide" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#38d9f5"/>
+          <stop offset=".5" stop-color="#8b7cf6"/>
+          <stop offset="1" stop-color="#3ddc84"/>
+        </linearGradient>
+      </defs>
+    </svg>
+
+    <div class="skills-grid" id="skillsGrid">
+      <!-- automotive featured card (rendered statically) -->
+      <div class="skill-card skill-featured corners">
+        <div class="skill-title"><span class="ico">🚗</span> Automotive &amp; HMI Infotainment <span style="opacity:.35;font-size:12px;font-weight:400">— CORE DOMAIN</span></div>
+        <div class="featured-grid">
+          <div class="feat-col">
+            <div class="col-label">IPC &amp; Interfaces</div>
+            <div class="meter"><div class="gauge" data-r="90" data-v="90"></div><div><div class="meter-name">AIDL — Android Interface Definition Language</div><div class="meter-pct">90%</div></div></div>
+            <div class="meter"><div class="gauge" data-r="82" data-v="82"></div><div><div class="meter-name">HIDL — HAL Interface Definition Language</div><div class="meter-pct">82%</div></div></div>
+            <div class="meter"><div class="gauge" data-r="85" data-v="85"></div><div><div class="meter-name">Binder IPC</div><div class="meter-pct">85%</div></div></div>
+            <div class="meter"><div class="gauge" data-r="88" data-v="88"></div><div><div class="meter-name">VHAL — Vehicle HAL</div><div class="meter-pct">88%</div></div></div>
+          </div>
+          <div class="feat-col">
+            <div class="col-label">Android Automotive OS</div>
+            <div class="meter"><div class="gauge" data-r="90" data-v="90"></div><div><div class="meter-name">AAOS / AOSP Build System</div><div class="meter-pct">90%</div></div></div>
+            <div class="meter"><div class="gauge" data-r="92" data-v="92"></div><div><div class="meter-name">SystemUI &amp; Launcher Dev</div><div class="meter-pct">92%</div></div></div>
+            <div class="meter"><div class="gauge" data-r="85" data-v="85"></div><div><div class="meter-name">CarService &amp; CarPropertyManager</div><div class="meter-pct">85%</div></div></div>
+            <div class="meter"><div class="gauge" data-r="80" data-v="80"></div><div><div class="meter-name">Android Car App Library</div><div class="meter-pct">80%</div></div></div>
+          </div>
+          <div class="feat-col">
+            <div class="col-label">HMI &amp; Display</div>
+            <div class="meter"><div class="gauge" data-r="83" data-v="83"></div><div><div class="meter-name">Multi-Display Management</div><div class="meter-pct">83%</div></div></div>
+            <div class="meter"><div class="gauge" data-r="78" data-v="78"></div><div><div class="meter-name">WindowManager / SurfaceFlinger</div><div class="meter-pct">78%</div></div></div>
+            <div class="meter"><div class="gauge" data-r="87" data-v="87"></div><div><div class="meter-name">OEM Customisation &amp; Overlays</div><div class="meter-pct">87%</div></div></div>
+            <div class="meter"><div class="gauge" data-r="82" data-v="82"></div><div><div class="meter-name">RSI DataTool / Simulation</div><div class="meter-pct">82%</div></div></div>
+          </div>
+        </div>
+        <div class="feat-tags tags">
+          <span class="tag">AIDL</span><span class="tag tag-green">HIDL</span><span class="tag">VHAL</span><span class="tag">AAOS</span><span class="tag">CarService</span><span class="tag">Binder IPC</span><span class="tag">SystemUI</span><span class="tag">Launcher</span><span class="tag tag-green">CarPropertyManager</span><span class="tag">Multi-Display</span><span class="tag">SurfaceFlinger</span><span class="tag">OEM Overlays</span>
+        </div>
+      </div>
+      <div class="skill-card corners">
+        <div class="skill-title"><span class="ico">🤖</span> Primary Languages</div>
+        <div class="meter"><div class="gauge" data-r="95" data-v="95"></div><div><div class="meter-name">Kotlin</div><div class="meter-pct">95%</div></div></div>
+        <div class="meter"><div class="gauge" data-r="90" data-v="90"></div><div><div class="meter-name">Java</div><div class="meter-pct">90%</div></div></div>
+        <div class="meter"><div class="gauge" data-r="88" data-v="88"></div><div><div class="meter-name">AOSP / Android Framework</div><div class="meter-pct">88%</div></div></div>
+      </div>
+
+      <div class="skill-card corners">
+        <div class="skill-title"><span class="ico">🏗️</span> Architecture</div>
+        <div class="meter"><div class="gauge" data-r="93" data-v="93"></div><div><div class="meter-name">MVVM / Clean Architecture</div><div class="meter-pct">93%</div></div></div>
+        <div class="meter"><div class="gauge" data-r="85" data-v="85"></div><div><div class="meter-name">Jetpack / Compose</div><div class="meter-pct">85%</div></div></div>
+        <div class="meter"><div class="gauge" data-r="88" data-v="88"></div><div><div class="meter-name">MVP / MVC</div><div class="meter-pct">88%</div></div></div>
+      </div>
+
+      <div class="skill-card corners">
+        <div class="skill-title"><span class="ico">🗄️</span> Databases</div>
+        <div class="meter"><div class="gauge" data-r="92" data-v="92"></div><div><div class="meter-name">Room / SQLite</div><div class="meter-pct">92%</div></div></div>
+        <div class="meter"><div class="gauge" data-r="80" data-v="80"></div><div><div class="meter-name">Realm</div><div class="meter-pct">80%</div></div></div>
+        <div class="meter"><div class="gauge" data-r="78" data-v="78"></div><div><div class="meter-name">Firebase / MySQL</div><div class="meter-pct">78%</div></div></div>
+      </div>
+
+      <div class="skill-card corners">
+        <div class="skill-title"><span class="ico">🧪</span> Testing &amp; Quality</div>
+        <div class="meter"><div class="gauge" data-r="85" data-v="85"></div><div><div class="meter-name">Mockito / Espresso</div><div class="meter-pct">85%</div></div></div>
+        <div class="meter"><div class="gauge" data-r="78" data-v="78"></div><div><div class="meter-name">Robolectric</div><div class="meter-pct">78%</div></div></div>
+        <div class="meter"><div class="gauge" data-r="88" data-v="88"></div><div><div class="meter-name">SonarQube / Crashlytics</div><div class="meter-pct">88%</div></div></div>
+      </div>
+
+      <div class="skill-card corners">
+        <div class="skill-title"><span class="ico">⚙️</span> CI/CD &amp; Tools</div>
+        <div class="meter"><div class="gauge" data-r="87" data-v="87"></div><div><div class="meter-name">GitHub Actions / Bitrise</div><div class="meter-pct">87%</div></div></div>
+        <div class="meter"><div class="gauge" data-r="83" data-v="83"></div><div><div class="meter-name">Azure DevOps</div><div class="meter-pct">83%</div></div></div>
+        <div class="meter"><div class="gauge" data-r="80" data-v="80"></div><div><div class="meter-name">Gerrit / Jenkins</div><div class="meter-pct">80%</div></div></div>
+      </div>
+
+      <div class="skill-card corners">
+        <div class="skill-title"><span class="ico">📡</span> Third-party &amp; APIs</div>
+        <div class="meter"><div class="gauge" data-r="88" data-v="88"></div><div><div class="meter-name">Google Maps / FCM</div><div class="meter-pct">88%</div></div></div>
+        <div class="meter"><div class="gauge" data-r="83" data-v="83"></div><div><div class="meter-name">BLE / Bluetooth SDK</div><div class="meter-pct">83%</div></div></div>
+        <div class="meter"><div class="gauge" data-r="92" data-v="92"></div><div><div class="meter-name">REST / JSON / XML</div><div class="meter-pct">92%</div></div></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section class="section" id="projects">
+  <div class="wrap">
+    <div class="head">
+      <span class="head-eyebrow">SYS.03</span>
+      <h2 class="head-title">Select Builds</h2>
+      <div class="head-rule"></div>
+      <span class="head-note">SHIPPED IN THE WILD</span>
+    </div>
+
+    <div class="projects">
+      <div class="pcard corners" data-tilt>
+        <div class="tilt">
+          <div class="pcard-num">BUILD · 01</div>
+          <div class="pcard-name">One Infotainment System</div>
+          <div class="pcard-client">🚗 CARIAD · VW · ŠKODA · FORD · SEAT</div>
+          <p class="pcard-desc">AAOS infotainment OS powering a unified experience across multiple VW Group brands. SystemUI and Launcher development with VHAL &amp; AIDL integration for real vehicle hardware communication and RSI DataTool simulation.</p>
+          <div class="tags"><span class="tag">AAOS</span><span class="tag">SystemUI</span><span class="tag tag-green">VHAL</span><span class="tag">AIDL</span><span class="tag">Kotlin</span></div>
+        </div>
+      </div>
+
+      <div class="pcard corners" data-tilt>
+        <div class="tilt">
+          <div class="pcard-num">BUILD · 02</div>
+          <div class="pcard-name">Health Innovation Platform</div>
+          <div class="pcard-client">🏥 WELLFORCE HEALTHCARE</div>
+          <p class="pcard-desc">End-to-end healthcare app with appointment booking, chatbot integration, BLE device connectivity for patient vitals monitoring, and deep MyChart SDK &amp; AWS Polly integration for healthcare professionals.</p>
+          <div class="tags"><span class="tag">Kotlin</span><span class="tag tag-green">BLE</span><span class="tag">MyChart SDK</span><span class="tag">AWS</span><span class="tag">Clean Arch</span></div>
+        </div>
+      </div>
+
+      <div class="pcard corners" data-tilt>
+        <div class="tilt">
+          <div class="pcard-num">BUILD · 03</div>
+          <div class="pcard-name">MyWellPall</div>
+          <div class="pcard-client">🏥 WELLFORCE HEALTHCARE</div>
+          <p class="pcard-desc">Companion wellness app enabling patients to monitor their health journey, track vitals from connected BLE devices, and stay engaged with their care team between appointments.</p>
+          <div class="tags"><span class="tag">Kotlin</span><span class="tag tag-green">BLE</span><span class="tag">MVVM</span><span class="tag">REST API</span></div>
+        </div>
+      </div>
+
+      <div class="pcard corners" data-tilt>
+        <div class="tilt">
+          <div class="pcard-num">BUILD · 04</div>
+          <div class="pcard-name">Trailer Module HMI</div>
+          <div class="pcard-client">🚛 GENERAL MOTORS</div>
+          <p class="pcard-desc">HMI application for real-time controlling and monitoring of trailer systems via sensor data from a prototype truck simulation device. Vehicle vital property extraction using CarPropertyManager and MVVM architecture.</p>
+          <div class="tags"><span class="tag">Kotlin</span><span class="tag">AAOS</span><span class="tag tag-green">VHAL</span><span class="tag">MVVM</span><span class="tag">Gerrit</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="p2 corners" style="margin-bottom:20px">
+      <div class="p2-grid">
+        <div class="p2-head">
+          <div class="p2-flag">PLATFORM · BUILD 05</div>
+          <div class="p2-name">Genfare Mobile Ticketing Suite</div>
+          <div class="p2-client">🚌 SPX CORPORATION, US · MULTI-TENANT · 50K+ ACTIVE USERS</div>
+          <p class="p2-desc">A single-codebase multi-tenant transit platform powering 10+ agency apps across the US. Includes trip planning, real-time arrivals, step-by-step navigation, QR code ticketing, route alerts, and Google Maps integration — all configurable per agency from the backend.</p>
+        </div>
+        <div class="p2-tags">
+          <span class="tag tag-green">Java → Kotlin</span>
+          <span class="tag">Multi-tenant</span>
+          <span class="tag">Google Maps SDK</span>
+          <span class="tag tag-green">QR Ticketing</span>
+          <span class="tag">Real-time Arrivals</span>
+          <span class="tag">Play Store</span>
+          <span class="tag">Crashlytics</span>
+        </div>
+      </div>
+      <div class="apps">
+        <span class="app">🚌 GRTC — Greater Richmond Transit</span>
+        <span class="app">🚌 CDTA Navigator</span>
+        <span class="app">🚌 BCT — Broward County Transit</span>
+        <span class="app">🚌 BVTA — Belleville Transit</span>
+        <span class="app">🚌 GBM — EFare</span>
+        <span class="app">🚌 GoPass — Broome County</span>
+        <span class="app">🚌 myWave — The Wave Transit</span>
+        <span class="app">🚌 COTR — Connect Transit</span>
+        <span class="app">🚌 MyJule</span>
+        <span class="app">🚌 Smart Ride</span>
+        <span class="app">🚌 EI Metro</span>
+        <span class="app">🚌 Ride Wichita</span>
+        <span class="app">🚌 Lee County Transit</span>
+        <span class="app">🎓 iSchool</span>
+      </div>
+    </div>
+
+    <div class="p2 corners">
+      <div class="p2-grid">
+        <div class="p2-head">
+          <div class="p2-flag">FREELANCE · BUILD 06</div>
+          <div class="p2-name">Independent Projects</div>
+          <div class="p2-client">🛠️ SELF-PUBLISHED · PLAY STORE</div>
+          <p class="p2-desc">Independently designed and shipped consumer apps covering real estate, social networking, health, and event management — from concept to Play Store launch.</p>
+        </div>
+        <div class="p2-tags">
+          <span class="tag tag-green">Solo Dev</span>
+          <span class="tag">Play Store</span>
+          <span class="tag">Kotlin</span>
+          <span class="tag">Firebase</span>
+        </div>
+      </div>
+      <div class="apps">
+        <span class="app">🏠 IRoomMates</span>
+        <span class="app">🏡 Sublet App</span>
+        <span class="app">🌿 Andariki Ayurvedam</span>
+        <span class="app">✨ True Wish</span>
+        <span class="app">🎉 Invite App</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section class="section" id="reviews">
+  <div class="wrap">
+    <div class="head">
+      <span class="head-eyebrow">SYS.04</span>
+      <h2 class="head-title">Peer Feedback</h2>
+      <div class="head-rule"></div>
+      <span class="head-note">LINKEDIN VERIFIED</span>
+    </div>
+    <div class="reviews">
+      <div class="quote corners">
+        <div class="quote-mark">“</div>
+        <p class="quote-text">Working with Ramesh was an absolute pleasure. He's a talented developer with skills that reach beyond just development — always looking for ways to push the boundaries of how we can make any product better. A highly productive team member whose way of working inspired me to do better.</p>
+        <div class="quote-foot">
+          <div class="avatar">CK</div>
+          <div>
+            <div class="quote-name">Chandrakant Kondke</div>
+            <div class="quote-role">ANDROID · IOS · FLUTTER · KOTLIN · COMPOSE — MARCH 2021 · SAME TEAM</div>
+          </div>
+        </div>
+      </div>
+      <div class="quote corners">
+        <div class="quote-mark">“</div>
+        <p class="quote-text">Ramesh is a smart and diligent professional with an unwavering resolve. His mental acuity to tackle hard problems is one of his most admirable qualities. Technically very strong, he has always delivered high-quality work — he earns my highest recommendation.</p>
+        <div class="quote-foot">
+          <div class="avatar" style="background:linear-gradient(135deg,var(--violet),var(--cyan))">UR</div>
+          <div>
+            <div class="quote-name">Utsav Roy</div>
+            <div class="quote-role">JAVA CLOUD CONSULTANT — JAN 2021 · SAME TEAM</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="quote corners">
+        <div class="quote-mark">“</div>
+        <p class="quote-text">Ramesh's ability to take an idea from concept to full implementation on board is truly impressive. We worked together in the SystemUI project, where his deep AAOS expertise and problem-solving skills always stood out. Beyond his technical talent, he is a great team player who is effortless to collaborate with — a massive asset to any automotive team.</p>
+        <div class="quote-foot">
+          <div class="avatar" style="background:linear-gradient(135deg,var(--green),var(--cyan))">AR</div>
+          <div>
+            <div class="quote-name">Aman Rawat</div>
+            <div class="quote-role">ANDROID · KMM · AOSP · SYSTEMUI · AUTOMOTIVE HMI · AI ENABLER — SEPT 2026 · SAME TEAM</div>
+          </div>
+        </div>
+      </div>
+      <div class="quote corners">
+        <div class="quote-mark">“</div>
+        <p class="quote-text">I worked with Ramesh at Omniwyse for about three years — one of the most dedicated Android developers on the floor. He built and shipped seven or eight production apps to the Play Store, including Genfare Mobile, a multi-tenant transit ticketing platform that had to work offline across different transit networks in the US. He also pushed hard to migrate legacy Java to Kotlin and set up proper offline-first architecture with Room and SQLite. When Ramesh owned something, you knew it was getting done right. Now he is deep in Android Automotive OS in Berlin, building SystemUI and Launcher for Volkswagen Group through IAV — from consumer apps to hardcore AOSP framework engineering, and he loves it. If you need a senior Android or AAOS engineer who can handle low-level framework work and still think like a product builder, Ramesh is your guy. Fully recommended.</p>
+        <div class="quote-foot">
+          <div class="avatar" style="background:linear-gradient(135deg,#ffb347,#38d9f5)">RA</div>
+          <div>
+            <div class="quote-name">ReddyRaja Annareddy</div>
+            <div class="quote-role">BUILDING WITH AI — AUG 2026 · MANAGED RAMESH DIRECTLY</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="section" id="contact">
+  <div class="wrap">
+    <div class="head">
+      <span class="head-eyebrow">SYS.05</span>
+      <h2 class="head-title">Uplink</h2>
+      <div class="head-rule"></div>
+      <span class="head-note">RESPONSE &lt; 48H</span>
+    </div>
+    <div class="contact-card corners">
+      <div class="contact-l">
+        <div class="contact-title">Let's build something that ships.</div>
+        <p class="contact-sub">Open to senior Android roles in Berlin — automotive, mobile, or embedded systems. I bring the full stack of the car: from SurfaceFlinger pixels to the VHAL below.</p>
+      </div>
+      <div class="contact-mid" aria-hidden="true">
+        <div class="contact-ring"></div>
+        <div class="contact-ring"></div>
+        <div class="contact-ring"></div>
+      </div>
+      <div class="contact-r">
+        <a href="#" class="citem" id="email-link">
+          <span class="citem-ico">✉️</span>
+          <div><div class="citem-label">Email</div><div class="citem-value" id="email-display">ramesh.de036&#64;gmail.com</div></div>
+        </a>
+        <a href="tel:+4915231428304" class="citem">
+          <span class="citem-ico">📱</span>
+          <div><div class="citem-label">Phone</div><div class="citem-value">+49 152 3142 8304</div></div>
+        </a>
+        <a href="https://www.linkedin.com/in/ramesh-rangam-3a5754107" target="_blank" rel="noopener noreferrer" class="citem">
+          <span class="citem-ico">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4.98 3.5C4.98 4.88 3.87 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5zM.28 8.2h4.44V23H.28V8.2zM8.34 8.2h4.25v2.02h.06c.59-1.12 2.04-2.3 4.2-2.3 4.49 0 5.32 2.96 5.32 6.8V23h-4.44v-7.18c0-1.71-.03-3.92-2.39-3.92-2.39 0-2.76 1.87-2.76 3.8V23H8.34V8.2z" fill="#38d9f5"/>
+            </svg>
+          </span>
+          <div><div class="citem-label">LinkedIn</div><div class="citem-value">ramesh-rangam-3a5754107</div></div>
+        </a>
+        <a href="https://github.com/rangamramesh" target="_blank" rel="noopener noreferrer" class="citem">
+          <span class="citem-ico">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.09.68-.22.68-.49 0-.24-.01-.87-.01-1.71-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.5-1.11-1.5-.91-.63.07-.62.07-.62 1 .07 1.53 1.05 1.53 1.05.89 1.56 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.37-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.27 2.75 1.05a9.36 9.36 0 0 1 2.5-.34c.85 0 1.71.12 2.5.34 1.91-1.32 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.8-4.57 5.06.36.32.68.94.68 1.9 0 1.37-.01 2.48-.01 2.82 0 .27.18.59.69.49A10.02 10.02 0 0 0 22 12.25C22 6.58 17.52 2 12 2z" fill="#38d9f5"/>
+            </svg>
+          </span>
+          <div><div class="citem-label">GitHub</div><div class="citem-value">github.com/rangamramesh</div></div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span class="foot-mono">© 2026 RAMESH RANGAM · BERLIN, DE</span>
+  <span class="foot-sign">BUILT LIKE AN HMI: <b>MODULES</b> · <b>ALIGNED</b> · <b>SHIPPED</b></span>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script>
-  // ---- Hero 3D instrument cluster ----
-  (function(){
-    const canvas = document.getElementById('hero-canvas');
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 100);
-    camera.position.set(0, 0, 9);
+/* ============ 3D SCENE — Android bot module rig ============ */
+(function(){
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var canvas = document.getElementById('scene');
+  var hasThree = (typeof THREE !== 'undefined');
 
-    const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  if (!hasThree) { document.body.classList.add('no-three'); return; }
+  if (!canvas) return;
+
+  var scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0x060a14, 16, 40);
+  var camera = new THREE.PerspectiveCamera(46, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(0, 2.6, 7.0);
+  camera.lookAt(0, 1.1, 0);
+
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x000000, 0);
+
+  /* lights */
+  scene.add(new THREE.AmbientLight(0x43506b, 1.1));
+  var key = new THREE.DirectionalLight(0xbfe6ff, 1.3); key.position.set(4, 8, 6); scene.add(key);
+  var rim = new THREE.DirectionalLight(0x3ddc84, 0.7); rim.position.set(-6, 3, -5); scene.add(rim);
+  var glow = new THREE.PointLight(0x8b7cf6, 0.6, 20); glow.position.set(0, 3.4, -3); scene.add(glow);
+
+  var stage = new THREE.Group(); scene.add(stage);
+
+  /* grid floor */
+  grid = new THREE.GridHelper(44, 44, 0x1d3a5c, 0x14243c);
+  grid.position.y = -1.9;
+  grid.material.opacity = 0.4; grid.material.transparent = true;
+  scene.add(grid);
+
+  /* particle constellation */
+  var starGeo = new THREE.BufferGeometry();
+  var starCount = 700, starPos = new Float32Array(starCount * 3);
+  for (var i = 0; i < starCount; i++) {
+    var r = 7 + Math.random() * 14;
+    var t = Math.random() * Math.PI * 2;
+    var p = Math.acos(2 * Math.random() - 1);
+    starPos[i*3]   = r * Math.sin(p) * Math.cos(t);
+    starPos[i*3+1] = r * Math.cos(p) * 0.7 + 1;
+    starPos[i*3+2] = r * Math.sin(p) * Math.sin(t);
+  }
+  starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+  var starMat = new THREE.PointsMaterial({ color: 0x38d9f5, size: 0.07, transparent: true, opacity: 0.7, sizeAttenuation: true });
+  var stars = new THREE.Points(starGeo, starMat);
+  scene.add(stars);
+
+  /* ============ ANDROID BOT — on-brand 3D mascot hero ============
+     Stylized Android robot: emblematic green shell, glowing eyes,
+     antennae, rounded torso + limbs. Clearcoat green plastic under
+     cyan/purple HUD lights, turntable rings + orbital halo. */
+  var BOTMAT = new THREE.MeshPhysicalMaterial({
+    color: 0x3ddc84, metalness: 0.35, roughness: 0.24,
+    clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 1.4, side: THREE.DoubleSide
+  });
+  var DARKBOT = new THREE.MeshPhysicalMaterial({
+    color: 0x0a1017, metalness: 0.7, roughness: 0.45, clearcoat: 1, clearcoatRoughness: 0.2, side: THREE.DoubleSide
+  });
+  var EYEMAT = new THREE.MeshStandardMaterial({ color: 0xd9fbff, emissive: 0x61eaff, emissiveIntensity: 3.0 });
+  var TIPMAT = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x9ff5ff, emissiveIntensity: 0.9 });
+
+  var bot = new THREE.Group();
+
+  /* head — the emblematic flattened dome */
+  var head = new THREE.Mesh(new THREE.SphereGeometry(0.39, 40, 40), BOTMAT);
+  head.scale.set(1, 0.95, 0.95); head.position.set(0, 1.47, 0); bot.add(head);
+
+  /* antennae — paired stems with glowing tips */
+  var antGeo = new THREE.CylinderGeometry(0.022, 0.028, 0.30, 12);
+  [-1, 1].forEach(function(s){
+    var ant = new THREE.Mesh(antGeo, DARKBOT);
+    ant.position.set(s * 0.16, 1.84, 0); ant.rotation.z = s * 0.42; bot.add(ant);
+    var tip = new THREE.Mesh(new THREE.SphereGeometry(0.058, 16, 16), TIPMAT);
+    tip.position.set(s * 0.31, 2.02, 0); bot.add(tip);
+  });
+
+  /* eyes — bright cyan pixels of life */
+  var eyeGeo = new THREE.SphereGeometry(0.052, 16, 16);
+  [-1, 1].forEach(function(s){
+    var eye = new THREE.Mesh(eyeGeo, EYEMAT);
+    eye.position.set(s * 0.135, 1.49, 0.375); bot.add(eye);
+  });
+
+  /* torso — tapered rounded can */
+  var torso = new THREE.Mesh(new THREE.CylinderGeometry(0.44, 0.52, 0.70, 32), BOTMAT);
+  torso.position.set(0, 0.72, 0); torso.scale.z = 0.88; bot.add(torso);
+  /* chest power-light accent */
+  var chest = new THREE.Mesh(new THREE.CircleGeometry(0.12, 24), EYEMAT);
+  chest.position.set(0, 0.78, 0.452); bot.add(chest);
+
+  /* arms — cocked out-down, friendly stance */
+  var armSeg = new THREE.CylinderGeometry(0.085, 0.075, 0.46, 20);
+  var handGeo = new THREE.SphereGeometry(0.11, 20, 20);
+  [-1, 1].forEach(function(s){
+    var arm = new THREE.Group();
+    var seg = new THREE.Mesh(armSeg, BOTMAT); seg.position.y = -0.20; arm.add(seg);
+    var hand = new THREE.Mesh(handGeo, BOTMAT); hand.position.y = -0.44; arm.add(hand);
+    arm.position.set(s * 0.56, 0.98, -0.03);
+    arm.rotation.z = s * 0.42;
+    arm.rotation.x = 0.18;
+    arm.userData.arm = s;
+    bot.add(arm);
+  });
+
+  /* legs — twin stubs with rounded feet */
+  var legGeo = new THREE.CylinderGeometry(0.11, 0.115, 0.34, 20);
+  var footGeo = new THREE.SphereGeometry(0.12, 20, 20);
+  [-1, 1].forEach(function(s){
+    var leg = new THREE.Mesh(legGeo, BOTMAT); leg.position.set(s * 0.23, 0.33, 0.02); bot.add(leg);
+    var foot = new THREE.Mesh(footGeo, BOTMAT); foot.position.set(s * 0.23, 0.115, 0.02); bot.add(foot);
+  });
+
+  /* neck collar — glowing ring where head meets torso (HUD accent) */
+  var collarR = new THREE.Mesh(new THREE.TorusGeometry(0.30, 0.018, 10, 48),
+    new THREE.MeshBasicMaterial({ color: 0x38d9f5, transparent: true, opacity: 0.55 }));
+  collarR.position.y = 1.06; bot.add(collarR);
+
+  /* ground shadow keeps the bot planted */
+  var shadow = new THREE.Mesh(new THREE.CircleGeometry(1.5, 40),
+    new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5, depthWrite: false }));
+  shadow.rotation.x = -Math.PI/2; shadow.position.y = 0.06; bot.add(shadow);
+
+  /* under-glow disc */
+  var glowDisc = new THREE.Mesh(new THREE.RingGeometry(1.05, 1.5, 48),
+    new THREE.MeshBasicMaterial({ color: 0x38d9f5, transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  glowDisc.rotation.x = -Math.PI/2; glowDisc.position.y = 0.03; bot.add(glowDisc);
+
+  bot.rotation.y = 0.55;      /* friendly 3/4 presentation */
+  stage.add(bot);
+
+  /* HUD turntable rings */
+  var ringGeo = new THREE.TorusGeometry(2.1, 0.016, 8, 120);
+  var ringM  = new THREE.MeshBasicMaterial({ color: 0x38d9f5, transparent: true, opacity: 0.3 });
+  var ring = new THREE.Mesh(ringGeo, ringM); ring.rotation.x = Math.PI/2; ring.position.y = -0.55;
+  var ring2 = new THREE.Mesh(new THREE.TorusGeometry(2.7, 0.008, 8, 120),
+    new THREE.MeshBasicMaterial({ color: 0x3ddc84, transparent: true, opacity: 0.16 }));
+  ring2.rotation.x = Math.PI/2; ring2.position.y = -0.55;
+  stage.add(ring, ring2);
+
+  /* orbital halo — tilted tech ring rolling around the bot */
+  var halo = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.012, 8, 96),
+    new THREE.MeshBasicMaterial({ color: 0x3ddc84, transparent: true, opacity: 0.3 }));
+  halo.rotation.x = 1.22; halo.position.y = 1.32; stage.add(halo);
+
+
+
+
+  /* mouse parallax */
+  var mx = 0, my = 0, tx = 0, ty = 0;
+  window.addEventListener('mousemove', function(e){
+    mx = (e.clientX / window.innerWidth  - 0.5) * 2;
+    my = (e.clientY / window.innerHeight - 0.5) * 2;
+  }, { passive: true });
+
+  function resize(){
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+  window.addEventListener('resize', resize);
 
-    const hudColor = 0x4fd7ff;
-    const amberColor = 0xffb020;
-    const steelColor = 0x3a4149;
+  function render(t){
+    tx += (mx - tx) * 0.05;
+    ty += (my - ty) * 0.05;
+    camera.position.x = tx * 1.5;
+    camera.position.y = 2.6 - ty * 0.9;
+    camera.lookAt(0, 1.05, 0);
 
-    const clusterGroup = new THREE.Group();
-    scene.add(clusterGroup);
+    bot.rotation.y += 0.0028;
+    bot.position.y = 0.02 + Math.sin(t * 0.001) * 0.03;
+    ring.rotation.z += 0.004;
+    ring2.rotation.z -= 0.003;
+    halo.rotation.y += 0.006;
+    stars.rotation.y += 0.00022;
 
-    // Outer bezel ring
-    const bezelGeo = new THREE.TorusGeometry(3.4, 0.05, 16, 100);
-    const bezelMat = new THREE.MeshBasicMaterial({ color: steelColor, transparent:true, opacity:0.6 });
-    const bezel = new THREE.Mesh(bezelGeo, bezelMat);
-    clusterGroup.add(bezel);
+    /* gentle gestures + wheel spin (visual life) */
+    bot.children.forEach(function(c){
+      if (c.userData.arm) c.rotation.z = c.userData.arm * (0.42 + 0.08 * Math.sin(t * 0.0018));
+      else if (c.userData.spin) c.rotation.x += 0.03;
+    });
 
-    // Glowing HUD ring
-    const ringGeo = new THREE.TorusGeometry(3.0, 0.018, 16, 100);
-    const ringMat = new THREE.MeshBasicMaterial({ color: hudColor, transparent:true, opacity:0.55 });
-    const ring = new THREE.Mesh(ringGeo, ringMat);
-    clusterGroup.add(ring);
+    renderer.render(scene, camera);
+  }
 
-    // Tick marks
-    const tickGroup = new THREE.Group();
-    const majorCount = 24;
-    for(let i=0;i<majorCount;i++){
-      const angle = (i / majorCount) * Math.PI * 2;
-      const isMajor = i % 3 === 0;
-      const len = isMajor ? 0.34 : 0.16;
-      const geo = new THREE.BoxGeometry(0.03, len, 0.03);
-      const mat = new THREE.MeshBasicMaterial({
-        color: isMajor ? hudColor : steelColor,
-        transparent:true,
-        opacity: isMajor ? 0.9 : 0.5
+  if (reduced) {
+    render(0);
+  } else {
+    var raf = function(t){ render(t); requestAnimationFrame(raf); };
+    requestAnimationFrame(raf);
+  }
+
+  /* pause GPU when tab hidden */
+  document.addEventListener('visibilitychange', function(){
+    if (reduced) return;
+    if (document.hidden) { cancelAnimationFrame(raf); }
+    else { raf = function(t){ render(t); requestAnimationFrame(raf); }; requestAnimationFrame(raf); }
+  });
+})();
+
+/* ============ GAUGES ============ */
+(function(){
+  var RADIUS = 19.5, CIRC = 2 * Math.PI * RADIUS;
+  document.querySelectorAll('.gauge').forEach(function(el){
+    var r = parseInt(el.dataset.r, 10) || 0;
+    var svgNS = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('viewBox', '0 0 44 44');
+    var track = document.createElementNS(svgNS, 'circle');
+    track.setAttribute('class', 'g-track');
+    track.setAttribute('cx', '22'); track.setAttribute('cy', '22'); track.setAttribute('r', RADIUS);
+    var val = document.createElementNS(svgNS, 'circle');
+    val.setAttribute('class', 'g-val');
+    val.setAttribute('cx', '22'); val.setAttribute('cy', '22'); val.setAttribute('r', RADIUS);
+    val.setAttribute('stroke-dasharray', CIRC);
+    val.setAttribute('stroke-dashoffset', CIRC);
+    svg.appendChild(track); svg.appendChild(val);
+    el.appendChild(svg);
+    var num = document.createElement('span');
+    num.className = 'g-ticks'; num.textContent = r + '%';
+    el.appendChild(num);
+    el._val = val;
+    el._off = CIRC;
+  });
+  /* animate when in view */
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if (!en.isIntersecting) return;
+      var el = en.target;
+      requestAnimationFrame(function(){
+        setTimeout(function(){
+          el._val.style.strokeDashoffset = (el._off * (1 - (el.dataset.r/100))).toFixed(2);
+        }, 120);
       });
-      const tick = new THREE.Mesh(geo, mat);
-      const radius = 3.15;
-      tick.position.set(Math.cos(angle)*radius, Math.sin(angle)*radius, 0);
-      tick.rotation.z = angle + Math.PI/2;
-      tickGroup.add(tick);
-    }
-    clusterGroup.add(tickGroup);
-
-    // Inner rotating dashed ring (data ring)
-    const dashGeo = new THREE.TorusGeometry(2.55, 0.012, 8, 90);
-    const dashMat = new THREE.MeshBasicMaterial({ color: amberColor, transparent:true, opacity:0.4 });
-    const dashRing = new THREE.Mesh(dashGeo, dashMat);
-    clusterGroup.add(dashRing);
-
-    // Needle
-    const needleGroup = new THREE.Group();
-    const needleGeo = new THREE.ConeGeometry(0.05, 2.5, 3);
-    const needleMat = new THREE.MeshBasicMaterial({ color: hudColor, transparent:true, opacity:0.85 });
-    const needle = new THREE.Mesh(needleGeo, needleMat);
-    needle.position.y = 1.1;
-    needleGroup.add(needle);
-    const hubGeo = new THREE.CircleGeometry(0.14, 24);
-    const hubMat = new THREE.MeshBasicMaterial({ color: 0x0a0c0e });
-    const hub = new THREE.Mesh(hubGeo, hubMat);
-    hub.position.z = 0.02;
-    needleGroup.add(hub);
-    clusterGroup.add(needleGroup);
-
-    // Background wireframe grid (depth cue, subtle)
-    const gridGeo = new THREE.PlaneGeometry(30, 30, 22, 22);
-    const gridMat = new THREE.MeshBasicMaterial({ color: steelColor, wireframe:true, transparent:true, opacity:0.08 });
-    const grid = new THREE.Mesh(gridGeo, gridMat);
-    grid.position.z = -6;
-    scene.add(grid);
-
-    // Faint particle field
-    const starGeo = new THREE.BufferGeometry();
-    const starCount = 200;
-    const starPos = new Float32Array(starCount*3);
-    for(let i=0;i<starCount;i++){
-      starPos[i*3] = (Math.random()-0.5)*20;
-      starPos[i*3+1] = (Math.random()-0.5)*14;
-      starPos[i*3+2] = (Math.random()-0.5)*8 - 4;
-    }
-    starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-    const starMat = new THREE.PointsMaterial({ color: 0x8992a0, size:0.02, transparent:true, opacity:0.5 });
-    const stars = new THREE.Points(starGeo, starMat);
-    scene.add(stars);
-
-    let mouseX = 0, mouseY = 0;
-    window.addEventListener('mousemove', (e)=>{
-      mouseX = (e.clientX / window.innerWidth - 0.5);
-      mouseY = (e.clientY / window.innerHeight - 0.5);
+      io.unobserve(el);
     });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.gauge').forEach(function(el){ io.observe(el); });
+})();
 
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let needleAngle = -2.0;
-    let t = 0;
+/* ============ TILT CARDS ============ */
+(function(){
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) return;
+  document.querySelectorAll('[data-tilt]').forEach(function(card){
+    var inner = card.querySelector('.tilt') || card;
+    card.addEventListener('mousemove', function(e){
+      var r = card.getBoundingClientRect();
+      var px = (e.clientX - r.left) / r.width - 0.5;
+      var py = (e.clientY - r.top) / r.height - 0.5;
+      inner.style.transform = 'perspective(900px) rotateX(' + (-py*7).toFixed(2) + 'deg) rotateY(' + (px*9).toFixed(2) + 'deg) translateY(-4px)';
+    });
+    card.addEventListener('mouseleave', function(){ inner.style.transform = ''; });
+  });
+})();
 
-    function animate(){
-      requestAnimationFrame(animate);
-      t += 0.01;
+/* ============ REVEAL ============ */
+(function(){
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if (!en.isIntersecting) return;
+      en.target.classList.add('in');
+      io.unobserve(en.target);
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.exp,.skill-card,.pcard,.p2,.quote').forEach(function(el){ io.observe(el); });
+})();
 
-      if(!reduceMotion){
-        tickGroup.rotation.z += 0.0009;
-        dashRing.rotation.z -= 0.0016;
-        ring.rotation.z += 0.0004;
-        needleAngle += (Math.sin(t*0.4)*0.002);
-        needleGroup.rotation.z = -1.9 + Math.sin(t*0.35)*0.55;
-        grid.rotation.z += 0.00025;
+/* ============ COUNTERS ============ */
+(function(){
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var cio = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if (!en.isIntersecting) return;
+      var el = en.target;
+      var target = parseInt(el.dataset.count, 10);
+      var suffix = target >= 50 ? 'K+' : '+';
+      if (reduce) { el.textContent = target + suffix; }
+      else {
+        var cur = 0, step = Math.max(1, Math.ceil(target/40));
+        var t = setInterval(function(){
+          cur = Math.min(cur + step, target);
+          el.textContent = cur + suffix;
+          if (cur >= target) { clearInterval(t); }
+        }, 32);
       }
-
-      clusterGroup.rotation.y += (mouseX*0.4 - clusterGroup.rotation.y)*0.03;
-      clusterGroup.rotation.x += (-mouseY*0.25 - clusterGroup.rotation.x)*0.03;
-      camera.position.x += (mouseX*0.6 - camera.position.x)*0.02;
-      camera.position.y += (-mouseY*0.4 - camera.position.y)*0.02;
-      camera.lookAt(0,0,0);
-
-      renderer.render(scene, camera);
-    }
-    animate();
-
-    window.addEventListener('resize', ()=>{
-      camera.aspect = window.innerWidth/window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      cio.unobserve(el);
     });
-  })();
-</script>
+  }, { threshold: 0.5 });
+  document.querySelectorAll('[data-count]').forEach(function(el){ cio.observe(el); });
+})();
 
+/* ============ EMAIL (scraper-proof) ============ */
+(function(){
+  var addr = 'ramesh.de036' + '\x40' + 'gmail.com';
+  var mailto = 'mailto:' + addr;
+  ['hero-email-link', 'email-link'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) { el.href = mailto; el.title = addr; el.removeAttribute('id'); }
+  });
+})();
+
+/* ============ ACTIVE NAV ============ */
+(function(){
+  var links = document.querySelectorAll('.nav a');
+  var map = {};
+  links.forEach(function(a){ map[a.getAttribute('href').slice(1)] = a; });
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if (!en.isIntersecting) return;
+      links.forEach(function(a){ a.classList.remove('active'); });
+      var key = en.target.id;
+      if (map[key]) map[key].classList.add('active');
+    });
+  }, { rootMargin: '-40% 0px -55% 0px' });
+  ['experience','skills','projects','reviews','contact'].forEach(function(id){
+    var sec = document.getElementById(id);
+    if (sec) io.observe(sec);
+  });
+})();
+</script>
 </body>
 </html>
